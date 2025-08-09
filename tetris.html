@@ -31,6 +31,11 @@
         }
 
         .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; 
+
             max-width: 1100px;
             margin: 0 auto;
         }
@@ -76,6 +81,7 @@
             transition: transform 0.15s ease, background 0.2s ease;
         }
         .back-link:hover { transform: translateY(-1px); background: rgba(255,255,255,0.9); }
+        .back-fixed { position: fixed; top: 16px; right: 24px; z-index: 1000; }
 
         .layout {
             display: grid;
@@ -165,9 +171,9 @@
 </head>
 <body>
 <div class="container">
+    <a href="./index.html" class="back-link back-fixed">← Back to Home</a>
     <div class="header">
         <div class="title">Tetris!<span ></span></div>
-        <a href="./index.html" class="back-link">← Back to Home</a>
     </div>
 
     <div class="layout">
