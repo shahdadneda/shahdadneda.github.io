@@ -101,23 +101,41 @@
             height: 24px;
         }
         
-        .github-button {
-            top: 20px;
-        }
-        
-        .x-button {
-            top: 70px;
-        }
+        .github-button { top: 20px; }
+        .x-button { top: 70px; }
         
         .github-button:hover, .x-button:hover {
             background-color: #e8f4fc;
             transform: translateY(-2px);
         }
         
-        .github-icon, .x-icon {
-            width: 24px;
-            height: 24px;
+        .github-icon, .x-icon { width: 24px; height: 24px; }
+
+        /* New layout */
+        .section { margin: 36px 0; }
+        .section-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 22px; color: #2c3e50; margin: 0 0 14px 0;
+            border-bottom: 2px solid #e2eefb; padding-bottom: 8px;
         }
+        .cards {
+            display: grid; grid-template-columns: 1fr; gap: 12px;
+        }
+        @media (min-width: 720px) {
+            .cards { grid-template-columns: 1fr 1fr; }
+        }
+        .card-link {
+            display: flex; gap: 12px; align-items: center;
+            padding: 16px; background: #f5f7fa; border-radius: 10px;
+            text-decoration: none; color: #2c3e50; border: 1px solid #e6eef7;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform .15s ease, background .2s ease;
+        }
+        .card-link:hover { background: #ecf5ff; transform: translateY(-2px); }
+        .card-emoji { font-size: 20px; }
+        .card-title { font-weight: 700; color: #1e5fa1; }
+        .card-sub { font-size: 13px; color: #5c728a; }
+        .card-text { display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
@@ -132,18 +150,44 @@
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
     </a>
+
     <h1>Hey, It's Shahdad!</h1>
-    
-    <div class="projects">
-        <a href="./ObstacleCourse/buildGame/index.html" class="project-link" style="font-weight: normal;">🎮 Check out this <span style="font-weight: bold;">Obstacle Course</span> I made (Unity)</a>
-        
-        <a href="./RocketRumble/sitebuild/index.html" class="project-link" style="font-weight: normal;">🚀 I'm building a flappy bird type game called <span style="font-weight: bold;">Rocket Rumble</span>! (Unity)</a>
-        
-        <a href="./tetris.html" class="project-link" style="font-weight: normal;">🧩 Play my version of <span style="font-weight: bold;">Tetris</span> (JS)</a>
-    </div>
-    
+
+    <!-- Projects Section (blank for now) -->
+    <section class="section" id="projects">
+        <div class="section-title">Projects</div>
+        <div class="cards" aria-label="Projects">
+            <!-- Intentionally left blank for now -->
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section class="section" id="games">
+        <div class="section-title">Games</div>
+        <div class="cards">
+            <a href="./ObstacleCourse/buildGame/index.html" class="card-link">
+                <div class="card-text">
+                    <span class="card-title">Obstacle Course</span>
+                    <span class="card-sub">Unity • 3D platformer prototype</span>
+                </div>
+            </a>
+            <a href="./RocketRumble/sitebuild/index.html" class="card-link">
+                <div class="card-text">
+                    <span class="card-title">Rocket Rumble</span>
+                    <span class="card-sub">Unity • Flappy-bird style in progress</span>
+                </div>
+            </a>
+            <a href="./tetris.html" class="card-link">
+                <div class="card-text">
+                    <span class="card-title">Tetris (Web)</span>
+                    <span class="card-sub">HTML5 Canvas • Vanilla JS</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
     <footer>
-        Check out my friend's site: <a href="https://Shahan.ca" class="footer-link">Shahan</a>
+        <!--Check out my friend's site: <a href="https://Shahan.ca" class="footer-link">Shahan</a>-->
     </footer>
 </div>
 
