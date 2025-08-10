@@ -1,183 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Shahdaddy</title>
-    <style>
-        body {
-            background-color: #b1d8ff;
-            margin: 0;
-            padding: 30px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            color: #2c3e50;
-            font-size: 36px;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }
-        
-        .projects {
-            margin: 25px 0;
-        }
-        
-        .project-link {
-            display: block;
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #f5f7fa;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #2980b9;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-left: 5px solid #3498db;
-        }
-        
-        .project-link:hover {
-            background-color: #e8f4fc;
-            transform: translateX(5px);
-        }
-        
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shahdad Neda</title>
+  <style>
+    :root {
+      --bg-1: #b1d8ff;
+      --bg-2: #e6f2ff;
+      --ink: #1f2a3a;
+      --muted: #5c6b7a;
+      --brand: #1f8af1;
+      --brand-2: #7cc0ff;
+      --surface: #ffffff;
+      --border: rgba(30, 41, 59, 0.12);
+      --shadow: 0 10px 30px rgba(24, 39, 75, 0.12);
+    }
 
-        
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        
-        .footer-link {
-            color: #3498db;
-            text-decoration: none;
-        }
-        
-        .footer-link:hover {
-            text-decoration: underline;
-        }
-        
-        .github-button, .x-button {
-            position: absolute;
-            right: 20px;
-            padding: 10px;
-            background-color: #f5f7fa;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #2980b9;
-            transition: all 0.3s ease;
-            border: 2px solid #3498db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-        }
-        
-        .github-button { top: 20px; }
-        .x-button { top: 70px; }
-        
-        .github-button:hover, .x-button:hover {
-            background-color: #e8f4fc;
-            transform: translateY(-2px);
-        }
-        
-        .github-icon, .x-icon { width: 24px; height: 24px; }
+    * { box-sizing: border-box; }
 
-        /* New layout */
-        .section { margin: 36px 0; }
-        .section-title {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 22px; color: #2c3e50; margin: 0 0 14px 0;
-            border-bottom: 2px solid #e2eefb; padding-bottom: 8px;
-        }
-        .cards {
-            display: grid; grid-template-columns: 1fr; gap: 12px;
-        }
-        @media (min-width: 720px) {
-            .cards { grid-template-columns: 1fr 1fr; }
-        }
-        .card-link {
-            display: flex; gap: 12px; align-items: center;
-            padding: 16px; background: #f5f7fa; border-radius: 10px;
-            text-decoration: none; color: #2c3e50; border: 1px solid #e6eef7;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: transform .15s ease, background .2s ease;
-        }
-        .card-link:hover { background: #ecf5ff; transform: translateY(-2px); }
-        .card-emoji { font-size: 20px; }
-        .card-title { font-weight: 700; color: #1e5fa1; }
-        .card-sub { font-size: 13px; color: #5c728a; }
-        .card-text { display: flex; flex-direction: column; }
-    </style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at -10% -10%, var(--bg-2), transparent 60%),
+        radial-gradient(1000px 500px at 110% -10%, #cde7ff, transparent 60%),
+        linear-gradient(180deg, var(--bg-1), #d9ecff 50%, #eef6ff);
+    }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(6px); background: rgba(255,255,255,0.55); border-bottom: 1px solid var(--border); }
+    .site-header .inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+    .brand { font-weight: 900; letter-spacing: .3px; }
+    .nav { display: flex; gap: 16px; align-items: center; }
+    .nav a { color: var(--ink); text-decoration: none; font-weight: 600; padding: 8px 10px; border-radius: 8px; }
+    .nav a:hover { background: rgba(255,255,255,0.7); }
+
+    /* Hero */
+    .hero { padding: 72px 0 40px; }
+    .hero .card { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 28px; }
+    .hero h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: .4px; }
+    .hero p { margin: 0; color: var(--muted); font-size: 16px; }
+    .hero-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; margin-bottom: 0px; }
+    .btn { appearance: none; border: 1px solid var(--border); background: #fff; color: #22324a; padding: 10px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: var(--shadow); }
+    .btn.primary { background: #e8f3ff; color: #0e69c9; border-color: #b6d7ff; }
+    .btn:hover { transform: translateY(-1px); }
+
+    /* Sections */
+    section { padding: 36px 0; }
+    .section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 14px 0; font-size: 22px; border-bottom: 2px solid #e2eefb; padding-bottom: 8px; }
+
+    /* Cards */
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 760px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    .card-link { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #e6eef7; border-radius: 12px; padding: 16px; text-decoration: none; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .card-link:hover { background: #f6faff; transform: translateY(-2px); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid #cfe3ff; background: #eef6ff; color: #0e69c9; font-size: 12px; font-weight: 700; }
+    .card-title { font-weight: 800; }
+    .card-sub { color: #5c728a; font-size: 13px; }
+    .stack { display: flex; flex-direction: column; gap: 2px; }
+
+    /* Contact */
+    .contact { display: grid; gap: 12px; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+    .contact a { color: #0e69c9; font-weight: 700; text-decoration: none; }
+    .contact a:hover { text-decoration: underline; }
+
+    /* Footer */
+    footer { padding: 28px 0 40px; color: var(--muted); text-align: center; font-size: 14px; }
+  </style>
 </head>
 <body>
-<div class="container">
-    <a href="https://github.com/shahdadneda" class="github-button" target="_blank">
-        <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-        </svg>
-    </a>
-    <a href="https://x.com/shahdadneda" class="x-button" target="_blank">
-        <svg class="x-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
-    </a>
+  <header class="site-header">
+    <div class="container inner">
+      <div class="brand">Shahdad Neda</div>
+      <nav class="nav">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#games">Games</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-    <h1>Shahdad Neda</h1>
-
-    <!-- Projects Section (blank for now) -->
-    <section class="section" id="projects">
-        <div class="section-title">Projects</div>
-        <div class="cards" aria-label="Projects">
-            <!-- Intentionally left blank for now -->
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="card">
+          <h1>Hi, I'm Shahdad Neda</h1>
+          <p>Developer and game enthusiast. I like building playful, fast experiences on the web and in Unity.</p>
+          <div class="hero-actions">
+          </div>
         </div>
+      </div>
     </section>
 
-    <!-- Games Section -->
-    <section class="section" id="games">
-        <div class="section-title">Games</div>
-        <div class="cards">
-            <a href="./tetris.html" class="card-link">
-                <div class="card-text">
-                    <span class="card-title">Tetris (Web)</span>
-                    <span class="card-sub">Vanilla JS</span>
-                </div>
-            </a>
-            <a href="./RocketRumble/sitebuild/index.html" class="card-link">
-                <div class="card-text">
-                    <span class="card-title">Rocket Rumble</span>
-                    <span class="card-sub">Unity • Flappy-bird style in progress</span>
-                </div>
-            </a>
-            <a href="./ObstacleCourse/buildGame/index.html" class="card-link">
-                <div class="card-text">
-                    <span class="card-title">Obstacle Course</span>
-                    <span class="card-sub">Unity • 3D platformer prototype</span>
-                </div>
-            </a>
+    <section id="about">
+      <div class="container">
+        <h2 class="section-title">About</h2>
+        <div class="card-link" style="justify-content: space-between;">
+          <div class="stack">
+            <span class="card-title">A bit about me</span>
+            <span class="card-sub">coming soon</span>
+          </div>
         </div>
+      </div>
     </section>
 
-    <footer>
-        <!--Check out my friend's site: <a href="https://Shahan.ca" class="footer-link">Shahan</a>-->
-    </footer>
-</div>
+    <section id="projects">
+      <div class="container">
+        <h2 class="section-title">Projects</h2>
+        <div class="grid" aria-label="Projects">
+          <a class="card-link" href="#projects">
+            <div class="stack">
+              <span class="card-title">Coming soon</span>
+              <!-- <span class="card-sub">Check back soon.</span> -->
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
 
+    <section id="games">
+      <div class="container">
+        <h2 class="section-title">Games</h2>
+        <div class="grid">
+          <a class="card-link" href="./tetris.html">
+            <div class="stack">
+              <span class="card-title">Tetris (Web)</span>
+              <span class="card-sub">Vanilla JS</span>
+            </div>
+          </a>
 
+          <a class="card-link" href="./RocketRumble/sitebuild/index.html">
+            <div class="stack">
+              <span class="card-title">Rocket Rumble</span>
+              <span class="card-sub">Unity</span>
+            </div>
+          </a>
 
+          <a class="card-link" href="./ObstacleCourse/buildGame/index.html">
+            <div class="stack">
+              <span class="card-title">Obstacle Course</span>
+              <span class="card-sub">Unity</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
 
+    <section id="contact">
+      <div class="container">
+        <h2 class="section-title">Contact</h2>
+        <div class="contact">
+          <div>Want to say hi or collaborate?</div>
+          <div>
+            <a href="mailto:shahdad@shahdad.ca">shahdad@shahdad.ca</a>
+            <span style="color: var(--muted);"> • </span>
+            <a href="https://github.com/shahdadneda" target="_blank" rel="noreferrer">GitHub</a>
+            <span style="color: var(--muted);"> • </span>
+            <a href="https://x.com/shahdadneda" target="_blank" rel="noreferrer">X</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">© <span id="y"></span> Shahdad Neda</div>
+  </footer>
+
+  <script>
+    // Update year
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
