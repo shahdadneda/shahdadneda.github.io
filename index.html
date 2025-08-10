@@ -36,13 +36,13 @@
     .site-header .inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
     .brand { font-weight: 900; letter-spacing: .3px; }
     .nav { display: flex; gap: 16px; align-items: center; }
-    .nav a { color: var(--ink); text-decoration: none; font-weight: 600; padding: 8px 10px; border-radius: 8px; }
+    .nav a { color: var(--ink); text-decoration: none; font-weight: 400; padding: 8px 10px; border-radius: 8px; }
     .nav a:hover { background: rgba(255,255,255,0.7); }
 
     /* Hero */
-    .hero { padding: 72px 0 40px; }
-    .hero .card { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 28px; }
-    .hero h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: .4px; }
+    .hero { padding: 48px 0 28px; }
+    .hero .card { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 18px; width: fit-content; max-width: calc(100% - 40px); margin: 0 auto; }
+    .hero h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: .4px; font-weight: 400; }
     .hero p { margin: 0; color: var(--muted); font-size: 16px; }
     .hero-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; margin-bottom: 0px; }
     .btn { appearance: none; border: 1px solid var(--border); background: #fff; color: #22324a; padding: 10px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: var(--shadow); }
@@ -75,7 +75,7 @@
 <body>
   <header class="site-header">
     <div class="container inner">
-      <div class="brand">Shahdad Neda</div>
+      <div class="brand"><em>Shahdad Neda</em></div>
       <nav class="nav">
         <a href="#about">About</a>
         <a href="#projects">Projects</a>
@@ -89,8 +89,8 @@
     <section class="hero">
       <div class="container">
         <div class="card">
-          <h1>Hi, I'm Shahdad Neda</h1>
-          <p>Developer and game enthusiast. I like building playful, fast experiences on the web and in Unity.</p>
+          <h1>Hi, I'm <b>Shahdad Neda</b></h1>
+          <p>Student and programmer in-progress.</p>
           <div class="hero-actions">
           </div>
         </div>
@@ -103,7 +103,7 @@
         <div class="card-link" style="justify-content: space-between;">
           <div class="stack">
             <span class="card-title">A bit about me</span>
-            <span class="card-sub">coming soon</span>
+            <!-- <span class="card-sub">I like learning, building, and experimenting with small side projects in my free time.</span> -->
           </div>
         </div>
       </div>
