@@ -19,14 +19,15 @@
 
     * { box-sizing: border-box; }
 
+    html { background: var(--bg-1); }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--ink);
-      background:
-        radial-gradient(1200px 600px at -10% -10%, var(--bg-2), transparent 60%),
-        radial-gradient(1000px 500px at 110% -10%, #cde7ff, transparent 60%),
-        linear-gradient(180deg, var(--bg-1), #d9ecff 50%, #eef6ff);
+      background: var(--bg-1);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
@@ -40,7 +41,7 @@
     .nav a:hover { background: rgba(255,255,255,0.7); }
 
     /* Hero */
-    .hero { padding: 48px 0 28px; }
+    .hero { padding: 24px 0 4px; }
     .hero .card { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 18px; width: fit-content; max-width: calc(100% - 40px); margin: 0 auto; }
     .hero h1 { margin: 0; font-size: clamp(28px, 4vw, 44px); letter-spacing: .4px; font-weight: 400; }
     .hero p { margin: 0; color: var(--muted); font-size: 16px; }
@@ -50,8 +51,10 @@
     .btn:hover { transform: translateY(-1px); }
 
     /* Sections */
-    section { padding: 36px 0; }
+    section { padding: 16px 0; }
     .section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 14px 0; font-size: 22px; border-bottom: 2px solid #e2eefb; padding-bottom: 8px; }
+
+    #projects, #games, #contact { margin-top: 32px; }
 
     /* Cards */
     .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
@@ -60,6 +63,7 @@
     .card-link:hover { background: #f6faff; transform: translateY(-2px); }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid #cfe3ff; background: #eef6ff; color: #0e69c9; font-size: 12px; font-weight: 700; }
     .card-title { font-weight: 800; }
+    .card-title.thin { font-weight: 400; }
     .card-sub { color: #5c728a; font-size: 13px; }
     .stack { display: flex; flex-direction: column; gap: 2px; }
 
@@ -85,7 +89,7 @@
     </div>
   </header>
 
-  <main>
+  <main style="flex: 1 0 auto;">
     <section class="hero">
       <div class="container">
         <div class="card">
@@ -100,10 +104,10 @@
     <section id="about">
       <div class="container">
         <h2 class="section-title">About</h2>
-        <div class="card-link" style="justify-content: space-between;">
+        <div class="contact">
           <div class="stack">
-            <span class="card-title">A bit about me</span>
-            <!-- <span class="card-sub">I like learning, building, and experimenting with small side projects in my free time.</span> -->
+            <span class="card-title thin">Test TEst Test. I like learning, building, and experimenting with small side projects in my free time.</span>
+            <!-- <span class="card-sub"></span> -->
           </div>
         </div>
       </div>
@@ -168,7 +172,7 @@
     </section>
   </main>
 
-  <footer>
+  <footer style="flex-shrink: 0;">
     <div class="container">© <span id="y"></span> Shahdad Neda</div>
   </footer>
 
