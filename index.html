@@ -51,22 +51,7 @@
             transform: translateX(5px);
         }
         
-        .dino-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 600px;
-            height: 150px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            z-index: 100;
-        }
-        
-        #game-canvas {
-            display: block;
-        }
+
         
         footer {
             margin-top: 40px;
@@ -151,7 +136,7 @@
         </svg>
     </a>
 
-    <h1>Hey, It's Shahdad!</h1>
+    <h1>Shahdad Neda</h1>
 
     <!-- Projects Section (blank for now) -->
     <section class="section" id="projects">
@@ -165,10 +150,10 @@
     <section class="section" id="games">
         <div class="section-title">Games</div>
         <div class="cards">
-            <a href="./ObstacleCourse/buildGame/index.html" class="card-link">
+            <a href="./tetris.html" class="card-link">
                 <div class="card-text">
-                    <span class="card-title">Obstacle Course</span>
-                    <span class="card-sub">Unity • 3D platformer prototype</span>
+                    <span class="card-title">Tetris (Web)</span>
+                    <span class="card-sub">Vanilla JS</span>
                 </div>
             </a>
             <a href="./RocketRumble/sitebuild/index.html" class="card-link">
@@ -177,10 +162,10 @@
                     <span class="card-sub">Unity • Flappy-bird style in progress</span>
                 </div>
             </a>
-            <a href="./tetris.html" class="card-link">
+            <a href="./ObstacleCourse/buildGame/index.html" class="card-link">
                 <div class="card-text">
-                    <span class="card-title">Tetris (Web)</span>
-                    <span class="card-sub">HTML5 Canvas • Vanilla JS</span>
+                    <span class="card-title">Obstacle Course</span>
+                    <span class="card-sub">Unity • 3D platformer prototype</span>
                 </div>
             </a>
         </div>
@@ -191,260 +176,8 @@
     </footer>
 </div>
 
-<div class="dino-container">
-    <canvas id="game-canvas" width="600" height="150"></canvas>
-</div>
 
-<script>
-// Get the canvas context
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
 
-// Game objects
-const dino = {
-    x: 50,
-    y: 105,
-    width: 40,
-    height: 43,
-    jumping: false,
-    velocity: 0,
-    gravity: 0.6,
-    jumpStrength: -12,
-    color: '#535353',
-    draw: function() {
-        // Draw dino body
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width * 0.5, this.height * 0.8);
-        
-        // Draw dino head
-        ctx.fillRect(this.x + this.width * 0.3, this.y - this.height * 0.3, this.width * 0.5, this.height * 0.5);
-        
-        // Draw legs
-        if (!this.jumping) {
-            const legOffset = (Date.now() % 400 < 200) ? 5 : -5; 
-            ctx.fillRect(this.x, this.y + this.height * 0.8, 10, 15 + legOffset);
-            ctx.fillRect(this.x + 20, this.y + this.height * 0.8, 10, 15 - legOffset);
-        } else {
-            ctx.fillRect(this.x, this.y + this.height * 0.8, 10, 15);
-            ctx.fillRect(this.x + 20, this.y + this.height * 0.8, 10, 15);
-        }
-        
-        // Draw eye
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(this.x + this.width * 0.6, this.y - this.height * 0.2, 5, 5);
-    }
-};
 
-// Cactus class
-class Cactus {
-    constructor(x) {
-        this.x = x;
-        this.y = 108;
-        this.width = 20;
-        this.height = 40;
-        this.color = '#535353';
-    }
-    
-    draw() {
-        ctx.fillStyle = this.color;
-        
-        // Main body
-        ctx.fillRect(this.x + 6, this.y, 8, this.height);
-        
-        // Arms
-        ctx.fillRect(this.x, this.y + 10, 6, 5);
-        ctx.fillRect(this.x + 14, this.y + 20, 6, 5);
-    }
-    
-    update() {
-        this.x -= gameSpeed;
-    }
-}
-
-// Game variables
-let obstacles = [];
-let score = 0;
-let highScore = 0;
-let gameSpeed = 6;
-let gameStarted = false;
-let animationFrame;
-let lastTime = 0;
-let frameCount = 0;
-let obstacleInterval = 50;
-
-// Draw ground
-function drawGround() {
-    ctx.beginPath();
-    ctx.moveTo(0, 148);
-    ctx.lineTo(canvas.width, 148);
-    ctx.strokeStyle = '#535353';
-    ctx.stroke();
-}
-
-// Create obstacles
-function createObstacle() {
-    obstacles.push(new Cactus(canvas.width));
-}
-
-// Main game update
-function updateGame(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    const deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw ground
-    drawGround();
-    
-    // Update dino position
-    if (dino.jumping) {
-        dino.velocity += dino.gravity;
-        dino.y += dino.velocity;
-        
-        if (dino.y > 105) {
-            dino.y = 105;
-            dino.jumping = false;
-            dino.velocity = 0;
-        }
-    }
-    
-    // Update obstacles
-    frameCount++;
-    if (frameCount >= obstacleInterval) {
-        createObstacle();
-        frameCount = 0;
-        // Random interval between obstacles
-        obstacleInterval = Math.floor(Math.random() * 50) + 50;
-    }
-    
-    // Update and draw obstacles
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-        const obstacle = obstacles[i];
-        obstacle.update();
-        obstacle.draw();
-        
-        // Check collision
-        if (
-            dino.x < obstacle.x + obstacle.width && 
-            dino.x + dino.width > obstacle.x &&
-            dino.y < obstacle.y + obstacle.height && 
-            dino.y + dino.height > obstacle.y
-        ) {
-            gameOver();
-            return;
-        }
-        
-        // Remove off-screen obstacles
-        if (obstacle.x + obstacle.width < 0) {
-            obstacles.splice(i, 1);
-            score++;
-            // Increase speed every 10 points
-            if (score % 10 === 0) {
-                gameSpeed += 0.5;
-            }
-        }
-    }
-    
-    // Draw dino
-    dino.draw();
-    
-    // Draw score
-    ctx.fillStyle = '#535353';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText(`HI ${highScore.toString().padStart(5, '0')} ${score.toString().padStart(5, '0')}`, canvas.width - 20, 30);
-    
-    if (gameStarted) {
-        animationFrame = requestAnimationFrame(updateGame);
-    }
-}
-
-// Game over function
-function gameOver() {
-    cancelAnimationFrame(animationFrame);
-    
-    if (score > highScore) {
-        highScore = score;
-    }
-    
-    ctx.fillStyle = '#535353';
-    ctx.font = '20px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, 75);
-    ctx.fillText('Press SPACE to restart', canvas.width / 2, 100);
-    
-    gameStarted = false;
-}
-
-// Start game function
-function startGame() {
-    if (!gameStarted) {
-        obstacles = [];
-        score = 0;
-        gameSpeed = 6;
-        dino.y = 105;
-        dino.jumping = false;
-        dino.velocity = 0;
-        frameCount = 0;
-        lastTime = 0;
-        gameStarted = true;
-        
-        // Use requestAnimationFrame for smoother animation
-        animationFrame = requestAnimationFrame(updateGame);
-    }
-}
-
-// Draw initial screen
-function drawInitialScreen() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGround();
-    dino.draw();
-    
-    ctx.fillStyle = '#535353';
-    ctx.font = '18px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Press SPACE to start', canvas.width / 2, 75);
-}
-
-// Event listeners
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        
-        if (!gameStarted) {
-            startGame();
-        } else if (!dino.jumping) {
-            dino.jumping = true;
-            dino.velocity = dino.jumpStrength;
-        }
-    }
-});
-
-// Add touch support for mobile users
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (!gameStarted) {
-        startGame();
-    } else if (!dino.jumping) {
-        dino.jumping = true;
-        dino.velocity = dino.jumpStrength;
-    }
-});
-
-// Add mouse click support
-canvas.addEventListener('click', () => {
-    if (!gameStarted) {
-        startGame();
-    } else if (!dino.jumping) {
-        dino.jumping = true;
-        dino.velocity = dino.jumpStrength;
-    }
-});
-
-// Initialize the game
-drawInitialScreen();
-</script>
 </body>
 </html>
