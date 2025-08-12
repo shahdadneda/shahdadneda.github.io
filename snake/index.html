@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Snake! - Shahdad</title>
+    <title>Snake by Shahdad</title>
     <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -15,7 +15,9 @@
 
     <div class="layout">
         <section class="card game-card">
-            <canvas id="snake" width="480" height="480"></canvas>
+            <div class="game-frame">
+                <canvas id="snake" width="480" height="480"></canvas>
+            </div>
         </section>
 
         <aside class="card sidebar">
@@ -37,10 +39,12 @@
                     <li><span class="key">S</span> / <span class="key">↓</span> Down</li>
                     <li><span class="key">A</span> / <span class="key">←</span> Left</li>
                     <li><span class="key">D</span> / <span class="key">→</span> Right</li>
-                    <li><span class="key">Space</span> Restart (when game over)</li>
+                    <li><span class="key">Esc</span> Pause</li>
                 </ul>
                 <div class="cta">Eat apples to grow. Don't hit the walls or yourself.</div>
-                
+                <div class="actions">
+                    <button id="btn-restart" class="btn btn-primary">Restart</button>
+                </div>
             </div>
         </aside>
     </div>

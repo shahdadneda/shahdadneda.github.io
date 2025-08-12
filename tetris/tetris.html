@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tetris by Shahdad</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./style.css" />
+    <meta charset="utf-8" />
+</head>
+<body>
+<div class="container">
+    <a href="../index.html" class="back-link back-fixed">← Back to Home</a>
+    <div class="header">
+        <div class="title">Tetris!<span ></span></div>
+    </div>
+
+    <div class="layout">
+        <section class="card game-card">
+            <canvas id="tetris" width="360" height="720"></canvas>
+        </section>
+
+        <aside class="card sidebar">
+            <div class="score-card">
+                <div class="score-header"> Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+
+            <h2>Controls</h2>
+            <div class="controls">
+                <ul class="controls-list">
+                    <li><span class="key">A</span> / <span class="key">D</span> Move</li>
+                    <li><span class="key">S</span> Soft drop</li>
+                    <li><span class="key">Space</span> Hard drop</li>
+                    <li><span class="key">W</span> Rotate</li>
+                    <li><span class="key">Esc</span> Pause</li>
+
+                </ul>
+                <div class="cta">Clear lines to score. Speed increases every line.</div>
+                <div class="actions">
+                    <button id="btn-restart" class="btn btn-primary">Restart</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script src="./game.js"></script>
+</body>
+</html>
+
+

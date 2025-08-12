@@ -222,7 +222,13 @@ function togglePause() {
   paused = !paused;
 }
 
-// No pause button; keyboard controls only (Escape/Space when paused)
+// Hook up visible Restart button
+const restartBtn = document.getElementById('btn-restart');
+if (restartBtn) {
+  restartBtn.addEventListener('click', () => {
+    init();
+  });
+}
 
 // Start
 init();
