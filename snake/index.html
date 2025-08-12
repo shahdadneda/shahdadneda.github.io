@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snake! - Shahdad</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<div class="container">
+    <a href="../index.html" class="back-link back-fixed">← Back to Home</a>
+    <div class="header">
+        <div class="title">Snake!</div>
+    </div>
+
+    <div class="layout">
+        <section class="card game-card">
+            <canvas id="snake" width="480" height="480"></canvas>
+        </section>
+
+        <aside class="card sidebar">
+            <div class="score-card">
+                <div class="score-header">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+
+            <div class="stats">
+                <div class="stat"><span>High Score</span><strong id="high">0</strong></div>
+                <div class="stat"><span>Level</span><strong id="level">1</strong></div>
+                <div class="stat"><span>Speed (ms)</span><strong id="speed">140</strong></div>
+            </div>
+
+            <h2>Controls</h2>
+            <div class="controls">
+                <ul class="controls-list">
+                    <li><span class="key">W</span> / <span class="key">↑</span> Up</li>
+                    <li><span class="key">S</span> / <span class="key">↓</span> Down</li>
+                    <li><span class="key">A</span> / <span class="key">←</span> Left</li>
+                    <li><span class="key">D</span> / <span class="key">→</span> Right</li>
+                    <li><span class="key">Space</span> Restart (when game over)</li>
+                </ul>
+                <div class="cta">Eat apples to grow. Don't hit the walls or yourself.</div>
+                
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script src="./game.js"></script>
+</body>
+</html>
+
