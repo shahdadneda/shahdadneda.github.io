@@ -1,0 +1,42 @@
+/* Place your licensed Uber Move font files in assets/fonts/uber-move/ and
+   ensure the filenames below match your files. Prefer .woff2 for best performance. */
+
+@font-face {
+  font-family: "Uber Move";
+  src: url('./assets/fonts/uber-move/UberMove-Light.woff2') format('woff2'),
+       url('./assets/fonts/uber-move/UberMove-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move";
+  src: url('./assets/fonts/uber-move/UberMove-Regular.woff2') format('woff2'),
+       url('./assets/fonts/uber-move/UberMove-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move";
+  src: url('./assets/fonts/uber-move/UberMove-Medium.woff2') format('woff2'),
+       url('./assets/fonts/uber-move/UberMove-Medium.woff') format('woff'),
+       url('./assets/fonts/uber-move/UberMoveMedium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move";
+  src: url('./assets/fonts/uber-move/UberMove-Bold.woff2') format('woff2'),
+       url('./assets/fonts/uber-move/UberMove-Bold.woff') format('woff'),
+       url('./assets/fonts/uber-move/UberMoveBold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+

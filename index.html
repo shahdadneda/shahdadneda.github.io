@@ -1,121 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shahdad Neda</title>
-  <link rel="stylesheet" href="./style.css" />
-</head>
-<body>
-  <header class="site-header">
-    <div class="container inner">
-      <div class="brand"><em>Shahdad Neda</em></div>
-      <nav class="nav">
-        <a href="#about">About</a>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shahdad Neda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./fonts.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="layout">
+    <a class="skip" href="#home">Skip to content</a>
+
+    <aside class="sidebar">
+      <div class="brand">Shahdad Neda</div>
+      <nav class="side-nav">
+        <a href="#home">Home</a>
         <a href="#projects">Projects</a>
         <a href="#games">Games</a>
-        <a href="#contact">Contact</a>
       </nav>
-    </div>
-  </header>
+    </aside>
 
-  <main style="flex: 1 0 auto;">
-    <section class="hero">
-      <div class="container">
-        <div class="card">
-          <h1>Hi, I'm <b>Shahdad Neda</b></h1>
-          <p>Student and programmer in-progress.</p>
-          <div class="hero-actions">
+    <main class="content">
+      <section id="home" class="hero">
+        <div class="hero-wrap">
+          <h1 class="title">Shahdad<br/>Neda</h1>
+          <p class="tagline">A curious builder and learner</p>
+
+          <div class="socials" aria-label="Social links">
+            <a href="https://github.com/shahdadneda" target="_blank" rel="noreferrer" aria-label="GitHub" class="social-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2.02c-3.34.73-4.04-1.6-4.04-1.6-.55-1.38-1.35-1.75-1.35-1.75-1.11-.76.09-.75.09-.75 1.22.09 1.86 1.25 1.86 1.25 1.09 1.86 2.86 1.32 3.56 1.01.11-.8.43-1.33.78-1.63-2.66-.3-5.47-1.33-5.47-5.9 0-1.3.47-2.37 1.24-3.21-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.22.96-.27 1.98-.4 3-.41 1.02 0 2.04.14 3 .41 2.29-1.54 3.3-1.22 3.3-1.22.66 1.65.25 2.87.12 3.17.77.84 1.23 1.91 1.23 3.21 0 4.58-2.8 5.6-5.48 5.9.44.38.84 1.13.84 2.29v3.39c0 .32.21.69.83.57A12 12 0 0 0 12 .5Z"/></svg>
+            </a>
+            <a href="https://x.com/shahdadneda" target="_blank" rel="noreferrer" aria-label="Twitter / X" class="social-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2H21.5l-7.58 8.66L23.5 22h-7.03l-5.5-6.64L4.64 22H1.38l8.1-9.26L.5 2h7.18l4.97 5.96L18.24 2Zm-1.23 18h1.98L7.06 4h-2L17.01 20Z"/></svg>
+            </a>
+            <a href="mailto:shahdad@shahdad.ca" aria-label="Email" class="social-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"/></svg>
+            </a>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="about">
-      <div class="container">
-        <h2 class="section-title">About</h2>
-        <div class="contact">
-          <div class="stack">
-            <span class="card-title thin">Test TEst Test. I like learning, building, and experimenting with small side projects in my free time.</span>
-            <!-- <span class="card-sub"></span> -->
-          </div>
+      <section id="about" class="section">
+        <div class="panel">
+          <h2>Hey</h2>
+          <p>I'm a high school student here in British Columbia, Canada. I'm interested in programming and tech, and I love to make small project and web games in my free time. 
+            <br> <br>
+            Outside of tech, I spend alot of my time playing tennis and other sports as well. I enjoy learning new skills and being curious, whether that be in music on my trumpet, in sports, in school, or any other projects I pursue.</p>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="projects">
-      <div class="container">
-        <h2 class="section-title">Projects</h2>
-        <div class="grid" aria-label="Projects">
-          <a class="card-link" href="#projects">
-            <div class="stack">
-              <span class="card-title">Coming soon</span>
-              <!-- <span class="card-sub">Check back soon.</span> -->
-            </div>
+      <section id="projects" class="section">
+        <h2>Projects</h2>
+        <div class="cards">
+          <a class="card" href="#projects" aria-label="Projects coming soon">
+            <div class="card-title">Coming soon</div>
+            <div class="card-sub">check back here soon!</div>
           </a>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="games">
-      <div class="container">
-        <h2 class="section-title">Games</h2>
-        <div class="grid">
-          <a class="card-link" href="./snake/index.html">
-            <div class="stack">
-              <span class="card-title">Snake</span>
-              <span class="card-sub">Vanilla JS</span>
-            </div>
+      <section id="games" class="section">
+        <h2>Games</h2>
+        <div class="cards">
+          <a class="card" href="./snake/index.html">
+            <div class="card-title">Snake</div>
+            <div class="card-sub">Vanilla JS</div>
           </a>
-
-          <a class="card-link" href="./tetris/tetris.html">
-            <div class="stack">
-              <span class="card-title">Tetris</span>
-              <span class="card-sub">Vanilla JS</span>
-            </div>
+          <a class="card" href="./tetris/tetris.html">
+            <div class="card-title">Tetris</div>
+            <div class="card-sub">Vanilla JS</div>
           </a>
-
-          <a class="card-link" href="./RocketRumble/sitebuild/index.html">
-            <div class="stack">
-              <span class="card-title">Rocket Rumble</span>
-              <span class="card-sub">Unity</span>
-            </div>
+          <a class="card" href="./RocketRumble/sitebuild/index.html">
+            <div class="card-title">Rocket Rumble</div>
+            <div class="card-sub">Unity</div>
           </a>
-
-          <a class="card-link" href="./ObstacleCourse/buildGame/index.html">
-            <div class="stack">
-              <span class="card-title">Obstacle Course</span>
-              <span class="card-sub">Unity</span>
-            </div>
+          <a class="card" href="./ObstacleCourse/buildGame/index.html">
+            <div class="card-title">Obstacle Course</div>
+            <div class="card-sub">Unity</div>
           </a>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="contact">
-      <div class="container">
-        <h2 class="section-title">Contact</h2>
-        <div class="contact">
-          <div>Want to say hi or collaborate?</div>
-          <div>
-            <a href="mailto:shahdad@shahdad.ca">shahdad@shahdad.ca</a>
-            <span style="color: var(--muted);"> • </span>
-            <a href="https://github.com/shahdadneda" target="_blank" rel="noreferrer">GitHub</a>
-            <span style="color: var(--muted);"> • </span>
-            <a href="https://x.com/shahdadneda" target="_blank" rel="noreferrer">X</a>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
+    </main>
 
-  <footer style="flex-shrink: 0;">
-    <div class="container">© <span id="y"></span> Shahdad Neda</div>
-  </footer>
-
-  <script>
-    // Update year
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
-</body>
+    <script>
+      const y = new Date().getFullYear();
+      const yearEl = document.getElementById('year');
+      if (yearEl) yearEl.textContent = y;
+    </script>
+  </body>
 </html>
