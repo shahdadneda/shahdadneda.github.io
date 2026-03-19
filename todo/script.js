@@ -1,5 +1,6 @@
 const STORAGE_KEY = "shahdad-todo-items";
 const SECTION_STORAGE_KEY = "shahdad-todo-active-section";
+const ESS_SECTION_KEY = "ess-planner";
 const SECTION_CONFIG = {
   general: {
     title: "General"
@@ -7,31 +8,42 @@ const SECTION_CONFIG = {
   "weekend-goals": {
     title: "Weekend Goals"
   },
-  "ess-planner": {
+  [ESS_SECTION_KEY]: {
     title: "ESS planner"
   }
 };
 
 const todoForm = document.getElementById("todo-form");
+const todoCard = document.querySelector(".todo-card");
+const taskArea = document.getElementById("task-area");
 const taskInput = document.getElementById("task-input");
 const taskList = document.getElementById("task-list");
-const taskCount = document.getElementById("task-count");
 const emptyState = document.getElementById("empty-state");
 const formMessage = document.getElementById("form-message");
 const todoHeading = document.getElementById("todo-heading");
+const todoContext = document.getElementById("todo-context");
 const sectionLinks = Array.from(document.querySelectorAll(".section-link"));
+const plannerShell = document.getElementById("planner-shell");
+const plannerCreateButton = document.getElementById("planner-create-button");
+const plannerEntryList = document.getElementById("planner-entry-list");
+const plannerEmptyMessage = document.getElementById("planner-empty-message");
 
 let activeSection = loadActiveSection();
 let tasksBySection = loadTasksBySection();
-let tasks = tasksBySection[activeSection].slice();
 let draggedTaskId = null;
 let dropIndicatorTaskId = null;
 
 renderSectionState();
+renderEssPlannerControls();
 renderTasks();
 
 todoForm.addEventListener("submit", function (event) {
   event.preventDefault();
+
+  if (!canManageCurrentTasks()) {
+    formMessage.textContent = getEssSelectionMessage();
+    return;
+  }
 
   const taskText = taskInput.value.trim();
 
@@ -41,13 +53,13 @@ todoForm.addEventListener("submit", function (event) {
   }
 
   const newTask = {
-    id: Date.now(),
+    id: createTaskId(),
     text: taskText,
     completed: false
   };
 
-  tasks.unshift(newTask);
-  syncSectionTasks();
+  const nextTasks = [newTask].concat(getCurrentTasks());
+  setCurrentTasks(nextTasks);
   renderTasks();
 
   todoForm.reset();
@@ -58,17 +70,15 @@ todoForm.addEventListener("submit", function (event) {
 taskList.addEventListener("click", function (event) {
   const deleteButton = event.target.closest(".task-delete");
 
-  if (!deleteButton) {
-    return;
+  if (deleteButton) {
+    const taskId = Number(deleteButton.dataset.id);
+    const nextTasks = getCurrentTasks().filter(function (task) {
+      return task.id !== taskId;
+    });
+
+    setCurrentTasks(nextTasks);
+    renderTasks();
   }
-
-  const taskId = Number(deleteButton.dataset.id);
-  tasks = tasks.filter(function (task) {
-    return task.id !== taskId;
-  });
-
-  syncSectionTasks();
-  renderTasks();
 });
 
 taskList.addEventListener("change", function (event) {
@@ -80,9 +90,9 @@ taskList.addEventListener("change", function (event) {
   const taskId = Number(event.target.dataset.id);
   const isCompleted = event.target.checked;
 
-  tasks = reorderTask(taskId, isCompleted);
+  const nextTasks = reorderTask(getCurrentTasks(), taskId, isCompleted);
 
-  syncSectionTasks();
+  setCurrentTasks(nextTasks);
   renderTasks(previousPositions);
 });
 
@@ -95,13 +105,89 @@ sectionLinks.forEach(function (link) {
     }
 
     activeSection = nextSection;
-    tasks = tasksBySection[activeSection].slice();
+    resetDragState();
     formMessage.textContent = "";
     saveActiveSection();
     renderSectionState();
+    renderEssPlannerControls();
     renderTasks();
-    taskInput.focus();
+
+    if (canManageCurrentTasks()) {
+      taskInput.focus();
+    }
   });
+});
+
+plannerCreateButton.addEventListener("click", function () {
+  const entryName = window.prompt("Name this ESS planner entry:", "");
+
+  if (entryName === null) {
+    return;
+  }
+
+  const trimmedName = entryName.trim();
+
+  if (!trimmedName) {
+    formMessage.textContent = "Please enter a name for the ESS planner entry.";
+    return;
+  }
+
+  createEssPlannerEntry(trimmedName);
+  formMessage.textContent = "";
+  renderSectionState();
+  renderEssPlannerControls();
+  renderTasks();
+
+  if (canManageCurrentTasks()) {
+    taskInput.focus();
+  }
+});
+
+plannerEntryList.addEventListener("click", function (event) {
+  const deleteButton = event.target.closest(".planner-entry-delete");
+
+  if (deleteButton) {
+    const entryIdToDelete = deleteButton.dataset.entryId;
+    const planner = getEssPlannerData();
+
+    planner.entries = planner.entries.filter(function (entry) {
+      return entry.id !== entryIdToDelete;
+    });
+
+    if (planner.activeEntryId === entryIdToDelete) {
+      planner.activeEntryId = null;
+    }
+
+    saveTasks();
+    resetDragState();
+    formMessage.textContent = "";
+    renderSectionState();
+    renderEssPlannerControls();
+    renderTasks();
+    return;
+  }
+
+  const entryButton = event.target.closest(".planner-entry-button");
+
+  if (!entryButton) {
+    return;
+  }
+
+  const nextEntryId = entryButton.dataset.entryId;
+  const planner = getEssPlannerData();
+
+  if (planner.activeEntryId === nextEntryId) {
+    return;
+  }
+
+  planner.activeEntryId = nextEntryId;
+  saveTasks();
+  resetDragState();
+  formMessage.textContent = "";
+  renderSectionState();
+  renderEssPlannerControls();
+  renderTasks();
+  taskInput.focus();
 });
 
 taskList.addEventListener("dragstart", function (event) {
@@ -173,9 +259,20 @@ taskList.addEventListener("dragend", function () {
 });
 
 function renderTasks(previousPositions) {
-  taskList.innerHTML = "";
+  const currentTasks = getCurrentTasks();
+  const hasPlannerEntry = canManageCurrentTasks();
 
-  tasks.forEach(function (task) {
+  taskList.innerHTML = "";
+  updateTaskComposerState(hasPlannerEntry);
+
+  if (!hasPlannerEntry) {
+    updateTaskCount(currentTasks);
+    emptyState.querySelector("p").textContent = getEssSelectionMessage();
+    emptyState.classList.remove("is-hidden");
+    return;
+  }
+
+  currentTasks.forEach(function (task) {
     const listItem = document.createElement("li");
     listItem.className = "task-item";
     listItem.dataset.taskId = String(task.id);
@@ -207,25 +304,26 @@ function renderTasks(previousPositions) {
     taskList.appendChild(listItem);
   });
 
-  updateTaskCount();
-  emptyState.classList.toggle("is-hidden", tasks.length > 0);
+  emptyState.querySelector("p").textContent = getEmptyStateMessage();
+  emptyState.classList.toggle("is-hidden", currentTasks.length > 0);
 
   if (previousPositions) {
     animateTaskReorder(previousPositions);
   }
 }
 
-function updateTaskCount() {
-  const remainingTasks = tasks.filter(function (task) {
+function updateTaskCount(taskItems) {
+  const taskCount = document.getElementById("task-count");
+
+  if (!taskCount) {
+    return;
+  }
+
+  const remainingTasks = taskItems.filter(function (task) {
     return !task.completed;
   }).length;
 
   taskCount.textContent = String(remainingTasks);
-}
-
-function syncSectionTasks() {
-  tasksBySection[activeSection] = tasks;
-  saveTasks();
 }
 
 function saveTasks() {
@@ -263,18 +361,22 @@ function loadTasksBySection() {
 }
 
 function createEmptySections() {
-  return Object.keys(SECTION_CONFIG).reduce(function (sections, sectionKey) {
-    sections[sectionKey] = [];
-    return sections;
-  }, {});
+  return {
+    general: [],
+    "weekend-goals": [],
+    [ESS_SECTION_KEY]: {
+      entries: [],
+      activeEntryId: null
+    }
+  };
 }
 
 function normalizeSections(sectionMap) {
-  return Object.keys(SECTION_CONFIG).reduce(function (sections, sectionKey) {
-    const sectionTasks = sectionMap[sectionKey];
-    sections[sectionKey] = Array.isArray(sectionTasks) ? sectionTasks.slice() : [];
-    return sections;
-  }, {});
+  return {
+    general: normalizeTaskList(sectionMap.general),
+    "weekend-goals": normalizeTaskList(sectionMap["weekend-goals"]),
+    [ESS_SECTION_KEY]: normalizeEssPlannerSection(sectionMap[ESS_SECTION_KEY])
+  };
 }
 
 function saveActiveSection() {
@@ -287,7 +389,15 @@ function loadActiveSection() {
 }
 
 function renderSectionState() {
+  const isPlannerSection = activeSection === ESS_SECTION_KEY;
+  const isWaitingForEssSelection = isPlannerSection && !getActiveEssEntry();
+
   todoHeading.textContent = SECTION_CONFIG[activeSection].title;
+  todoContext.textContent = getSectionContext();
+  todoContext.classList.toggle("is-hidden", !todoContext.textContent);
+  plannerShell.classList.toggle("is-hidden", !isPlannerSection);
+  todoCard.classList.toggle("is-planner-layout", isPlannerSection);
+  todoCard.classList.toggle("is-planner-waiting", isWaitingForEssSelection);
 
   sectionLinks.forEach(function (link) {
     const isActive = link.dataset.section === activeSection;
@@ -302,6 +412,54 @@ function renderSectionState() {
   });
 }
 
+function renderEssPlannerControls() {
+  if (activeSection !== ESS_SECTION_KEY) {
+    plannerEntryList.innerHTML = "";
+    plannerEmptyMessage.textContent = "";
+    plannerEmptyMessage.classList.add("is-hidden");
+    return;
+  }
+
+  const planner = getEssPlannerData();
+  plannerEntryList.innerHTML = "";
+
+  planner.entries.forEach(function (entry) {
+    const entryItem = document.createElement("div");
+
+    entryItem.className = "planner-entry-item";
+
+    if (entry.id === planner.activeEntryId) {
+      entryItem.classList.add("is-active");
+    }
+
+    entryItem.innerHTML = `
+      <button class="planner-entry-button" type="button" data-entry-id="${entry.id}">
+        <span class="planner-entry-name">${escapeHtml(entry.name)}</span>
+      </button>
+      <button
+        class="planner-entry-delete"
+        type="button"
+        data-entry-id="${entry.id}"
+        aria-label="Delete ${escapeHtml(entry.name)}"
+      >
+        X
+      </button>
+    `;
+
+    plannerEntryList.appendChild(entryItem);
+  });
+
+  if (planner.entries.length === 0) {
+    plannerEmptyMessage.textContent =
+      "No ESS planner entries yet. Create one for your next Tuesday or Thursday.";
+    plannerEmptyMessage.classList.remove("is-hidden");
+    return;
+  }
+
+  plannerEmptyMessage.textContent = "";
+  plannerEmptyMessage.classList.add("is-hidden");
+}
+
 function normalizeTaskOrder(taskItems) {
   const activeTasks = taskItems.filter(function (task) {
     return !task.completed;
@@ -313,16 +471,16 @@ function normalizeTaskOrder(taskItems) {
   return activeTasks.concat(completedTasks);
 }
 
-function reorderTask(taskId, isCompleted) {
-  const updatedTask = tasks.find(function (task) {
+function reorderTask(taskItems, taskId, isCompleted) {
+  const updatedTask = taskItems.find(function (task) {
     return task.id === taskId;
   });
 
   if (!updatedTask) {
-    return tasks;
+    return taskItems;
   }
 
-  const remainingTasks = tasks.filter(function (task) {
+  const remainingTasks = taskItems.filter(function (task) {
     return task.id !== taskId;
   });
   const nextTask = {
@@ -347,19 +505,20 @@ function reorderTask(taskId, isCompleted) {
 }
 
 function syncTasksToDomOrder() {
+  const currentTasks = getCurrentTasks();
   const taskLookup = new Map(
-    tasks.map(function (task) {
+    currentTasks.map(function (task) {
       return [String(task.id), task];
     })
   );
 
-  tasks = Array.from(taskList.querySelectorAll(".task-item"))
+  const nextTasks = Array.from(taskList.querySelectorAll(".task-item"))
     .map(function (taskItem) {
       return taskLookup.get(taskItem.dataset.taskId);
     })
     .filter(Boolean);
 
-  syncSectionTasks();
+  setCurrentTasks(nextTasks);
 }
 
 function getDragAfterElement(pointerY) {
@@ -501,6 +660,221 @@ function animateTaskReorder(previousPositions) {
       }
     );
   });
+}
+
+function normalizeTaskList(taskItems) {
+  if (!Array.isArray(taskItems)) {
+    return [];
+  }
+
+  return taskItems.reduce(function (normalizedTasks, task, index) {
+    if (!task || typeof task !== "object") {
+      return normalizedTasks;
+    }
+
+    const text = typeof task.text === "string" ? task.text.trim() : "";
+
+    if (!text) {
+      return normalizedTasks;
+    }
+
+    normalizedTasks.push({
+      id: typeof task.id === "number" ? task.id : Date.now() + index,
+      text: text,
+      completed: Boolean(task.completed)
+    });
+
+    return normalizedTasks;
+  }, []);
+}
+
+function normalizeEssPlannerSection(sectionValue) {
+  if (Array.isArray(sectionValue)) {
+    const legacyTasks = normalizeTaskList(sectionValue);
+
+    if (legacyTasks.length === 0) {
+      return {
+        entries: [],
+        activeEntryId: null
+      };
+    }
+
+    return {
+      entries: [
+        {
+          id: "legacy-ess-entry",
+          name: "Existing ESS Planner",
+          tasks: legacyTasks
+        }
+      ],
+      activeEntryId: null
+    };
+  }
+
+  if (!sectionValue || typeof sectionValue !== "object") {
+    return {
+      entries: [],
+      activeEntryId: null
+    };
+  }
+
+  const rawEntries = Array.isArray(sectionValue.entries) ? sectionValue.entries : [];
+  const entries = rawEntries.reduce(function (normalizedEntries, entry, index) {
+    if (!entry || typeof entry !== "object") {
+      return normalizedEntries;
+    }
+
+    const name = typeof entry.name === "string" ? entry.name.trim() : "";
+
+    if (!name) {
+      return normalizedEntries;
+    }
+
+    normalizedEntries.push({
+      id: typeof entry.id === "string" && entry.id ? entry.id : `ess-entry-${Date.now()}-${index}`,
+      name: name,
+      tasks: normalizeTaskList(entry.tasks)
+    });
+
+    return normalizedEntries;
+  }, []);
+
+  const activeEntryId = entries.some(function (entry) {
+    return entry.id === sectionValue.activeEntryId;
+  })
+    ? sectionValue.activeEntryId
+    : null;
+
+  return {
+    entries: entries,
+    activeEntryId: activeEntryId
+  };
+}
+
+function getCurrentTasks() {
+  if (activeSection !== ESS_SECTION_KEY) {
+    return tasksBySection[activeSection];
+  }
+
+  const activeEntry = getActiveEssEntry();
+  return activeEntry ? activeEntry.tasks : [];
+}
+
+function setCurrentTasks(nextTasks) {
+  if (activeSection !== ESS_SECTION_KEY) {
+    tasksBySection[activeSection] = nextTasks;
+    saveTasks();
+    return;
+  }
+
+  const planner = getEssPlannerData();
+  planner.entries = planner.entries.map(function (entry) {
+    if (entry.id !== planner.activeEntryId) {
+      return entry;
+    }
+
+    return {
+      ...entry,
+      tasks: nextTasks
+    };
+  });
+
+  saveTasks();
+  renderEssPlannerControls();
+}
+
+function canManageCurrentTasks() {
+  if (activeSection !== ESS_SECTION_KEY) {
+    return true;
+  }
+
+  return Boolean(getActiveEssEntry());
+}
+
+function getSectionContext() {
+  if (activeSection !== ESS_SECTION_KEY) {
+    return "";
+  }
+
+  const activeEntry = getActiveEssEntry();
+
+  if (!activeEntry) {
+    return "Choose an ESS entry to start planning.";
+  }
+
+  return activeEntry.name;
+}
+
+function updateTaskComposerState(hasPlannerEntry) {
+  const canEditTasks = typeof hasPlannerEntry === "boolean" ? hasPlannerEntry : canManageCurrentTasks();
+
+  taskInput.disabled = !canEditTasks;
+  todoForm.querySelector("button").disabled = !canEditTasks;
+  taskInput.placeholder = canEditTasks
+    ? getTaskPlaceholder()
+    : getEssSelectionMessage();
+}
+
+function getTaskPlaceholder() {
+  if (activeSection === ESS_SECTION_KEY) {
+    const activeEntry = getActiveEssEntry();
+    return activeEntry ? `Add a task for ${activeEntry.name}` : getEssSelectionMessage();
+  }
+
+  return "What do you want to get done?";
+}
+
+function getEmptyStateMessage() {
+  if (activeSection === ESS_SECTION_KEY) {
+    return "No tasks for this ESS entry yet.";
+  }
+
+  return "No tasks yet. Add your first one above.";
+}
+
+function getEssPlannerData() {
+  return tasksBySection[ESS_SECTION_KEY];
+}
+
+function getActiveEssEntry() {
+  const planner = getEssPlannerData();
+
+  return (
+    planner.entries.find(function (entry) {
+      return entry.id === planner.activeEntryId;
+    }) || null
+  );
+}
+
+function createEssPlannerEntry(name) {
+  const planner = getEssPlannerData();
+  const newEntry = {
+    id: createEntryId(),
+    name: name,
+    tasks: []
+  };
+
+  planner.entries.unshift(newEntry);
+  planner.activeEntryId = null;
+  saveTasks();
+}
+
+function getEssSelectionMessage() {
+  const planner = getEssPlannerData();
+  return planner.entries.length > 0 ? "Select an ESS day first" : "Create an ESS entry first";
+}
+
+function createTaskId() {
+  return Date.now() + Math.floor(Math.random() * 1000);
+}
+
+function createEntryId() {
+  return `ess-entry-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
+function resetDragState() {
+  clearDropIndicator();
+  draggedTaskId = null;
 }
 
 function escapeHtml(text) {

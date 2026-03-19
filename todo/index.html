@@ -47,30 +47,48 @@
 
         <section class="todo-card" aria-labelledby="todo-heading">
           <div class="todo-header">
-            <h2 id="todo-heading">General</h2>
-            <div class="task-count" id="task-count" aria-live="polite">0</div>
+            <div class="todo-heading-group">
+              <h2 id="todo-heading">General</h2>
+              <p class="todo-context is-hidden" id="todo-context"></p>
+            </div>
           </div>
 
-          <form class="todo-form" id="todo-form">
-            <label class="sr-only" for="task-input">Add a new task</label>
-            <input
-              id="task-input"
-              name="task"
-              type="text"
-              placeholder="What do you want to get done?"
-              maxlength="120"
-              autocomplete="off"
-              required
-            />
-            <button type="submit">Add Task</button>
-          </form>
+          <div class="todo-body" id="todo-body">
+            <div class="task-area" id="task-area">
+              <form class="todo-form" id="todo-form">
+                <label class="sr-only" for="task-input">Add a new task</label>
+                <input
+                  id="task-input"
+                  name="task"
+                  type="text"
+                  placeholder="What do you want to get done?"
+                  maxlength="120"
+                  autocomplete="off"
+                  required
+                />
+                <button type="submit">Add Task</button>
+              </form>
 
-          <p class="form-message" id="form-message" aria-live="polite"></p>
+              <p class="form-message" id="form-message" aria-live="polite"></p>
 
-          <ul class="task-list" id="task-list" aria-live="polite"></ul>
+              <ul class="task-list" id="task-list" aria-live="polite"></ul>
 
-          <div class="empty-state" id="empty-state">
-            <p>No tasks yet. Add your first one above.</p>
+              <div class="empty-state" id="empty-state">
+                <p>No tasks yet. Add your first one above.</p>
+              </div>
+            </div>
+
+            <aside class="planner-shell is-hidden" id="planner-shell">
+              <div class="planner-toolbar">
+                <button class="planner-create-button" id="planner-create-button" type="button">
+                  New ESS Entry
+                </button>
+              </div>
+
+              <div class="planner-entry-list" id="planner-entry-list" aria-live="polite"></div>
+
+              <p class="planner-empty-message is-hidden" id="planner-empty-message"></p>
+            </aside>
           </div>
         </section>
       </div>
