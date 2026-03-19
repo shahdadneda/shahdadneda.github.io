@@ -307,6 +307,10 @@ plannerDatePicker.addEventListener("click", function (event) {
     return;
   }
 
+  if (dayButton.disabled) {
+    return;
+  }
+
   const selectedDate = createDateFromIso(dayButton.dataset.date);
 
   if (!selectedDate) {
@@ -1260,6 +1264,11 @@ function getPlannerEntryDescriptorFromDate(sectionKey, selectedDate) {
     };
   }
 
+  if (sectionKey === ESS_SECTION_KEY && !isEssPlannerDateSelectable(selectedDate)) {
+    formMessage.textContent = "Pick a Tuesday or Thursday to create an ESS entry.";
+    return null;
+  }
+
   return {
     name: formatPlannerEntryDate(selectedDate),
     sortKey: getStartOfDay(selectedDate).getTime()
@@ -1531,6 +1540,7 @@ function renderPlannerDatePicker() {
     const dayButton = document.createElement("button");
     const isCurrentMonth = dayDate.getMonth() === plannerCalendarMonth.getMonth();
     const isToday = areSameCalendarDay(dayDate, today);
+    const isSelectable = isPlannerCalendarDateSelectable(activeSection, dayDate);
 
     dayButton.className = "planner-date-picker-day";
     dayButton.type = "button";
@@ -1544,6 +1554,12 @@ function renderPlannerDatePicker() {
 
     if (isToday) {
       dayButton.classList.add("is-today");
+    }
+
+    if (!isSelectable) {
+      dayButton.classList.add("is-disabled");
+      dayButton.disabled = true;
+      dayButton.setAttribute("aria-disabled", "true");
     }
 
     plannerDatePickerGrid.appendChild(dayButton);
@@ -1583,7 +1599,7 @@ function closePlannerDatePicker() {
 }
 
 function formatPlannerEntryDate(date) {
-  return `${ENTRY_MONTH_FORMATTER.format(date)} ${date.getDate()}, ${String(date.getFullYear()).slice(-2)}'`;
+  return `${getEssWeekdayLabel(date)}, ${ENTRY_MONTH_FORMATTER.format(date)} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 function formatWeekendEntryDate(weekendStartDate) {
@@ -1657,6 +1673,32 @@ function getWeekendStartDate(date) {
   }
 
   return null;
+}
+
+function getEssWeekdayLabel(date) {
+  return date.getDay() === 2 ? "Tue" : "Thurs";
+}
+
+function isPlannerCalendarDateSelectable(sectionKey, date) {
+  if (sectionKey === WEEKEND_SECTION_KEY) {
+    return isWeekendPlannerDateSelectable(date);
+  }
+
+  if (sectionKey === ESS_SECTION_KEY) {
+    return isEssPlannerDateSelectable(date);
+  }
+
+  return true;
+}
+
+function isEssPlannerDateSelectable(date) {
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 2 || dayOfWeek === 4;
+}
+
+function isWeekendPlannerDateSelectable(date) {
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 6;
 }
 
 function getStartOfMonth(date) {

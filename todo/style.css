@@ -430,6 +430,28 @@ p {
   color: rgba(147, 164, 191, 0.4);
 }
 
+.planner-date-picker-day.is-disabled {
+  color: rgba(147, 164, 191, 0.26);
+  background: transparent;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.58;
+}
+
+.planner-date-picker-day.is-disabled:hover,
+.planner-date-picker-day.is-disabled:focus-visible,
+.planner-date-picker-day.is-disabled:active {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.planner-date-picker-day.is-outside-month.is-disabled {
+  color: rgba(147, 164, 191, 0.16);
+  opacity: 0.45;
+}
+
 .planner-date-picker-day.is-today {
   background: linear-gradient(180deg, rgba(124, 192, 255, 0.96), rgba(77, 159, 255, 0.92));
   color: #06101f;
@@ -441,6 +463,12 @@ p {
 .planner-date-picker-day.is-today:hover,
 .planner-date-picker-day.is-today:focus-visible {
   filter: brightness(1.05);
+}
+
+.planner-date-picker-day.is-disabled.is-today {
+  background: rgba(77, 159, 255, 0.12);
+  color: rgba(124, 192, 255, 0.46);
+  box-shadow: inset 0 0 0 1px rgba(124, 192, 255, 0.08);
 }
 
 .planner-entry-list {
