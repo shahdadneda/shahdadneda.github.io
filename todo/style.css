@@ -203,24 +203,22 @@ p {
   align-items: start;
 }
 
-.todo-card.is-planner-layout.is-planner-waiting .todo-body {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .planner-shell {
+  width: 100%;
+  max-width: 280px;
+  justify-self: end;
   padding-left: 24px;
   border-left: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-.todo-card.is-planner-layout.is-planner-waiting .planner-shell {
-  padding-left: 0;
-  border-left: 0;
 }
 
 .planner-toolbar {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 14px;
+}
+
+.planner-date-picker-shell {
+  position: relative;
 }
 
 .planner-create-button {
@@ -247,15 +245,146 @@ p {
   transform: scale(0.98);
 }
 
+.planner-date-picker {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 12;
+  width: min(100vw - 32px, 272px);
+  padding: 18px 16px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top, rgba(124, 192, 255, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(12, 19, 36, 0.98), rgba(8, 14, 28, 0.98));
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+}
+
+.planner-date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.planner-date-picker-title {
+  margin-bottom: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.planner-date-picker-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.planner-date-picker-nav-button,
+.planner-date-picker-day {
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+}
+
+.planner-date-picker-nav-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(15, 27, 51, 0.56);
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.planner-date-picker-nav-button:hover,
+.planner-date-picker-nav-button:focus-visible {
+  background: rgba(24, 41, 71, 0.92);
+  box-shadow: 0 0 0 1px rgba(124, 192, 255, 0.18);
+  outline: none;
+}
+
+.planner-date-picker-nav-button:active {
+  transform: scale(0.97);
+}
+
+.planner-date-picker-weekdays,
+.planner-date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.planner-date-picker-weekdays {
+  margin-bottom: 10px;
+  color: rgba(147, 164, 191, 0.8);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planner-date-picker-weekdays span {
+  display: grid;
+  place-items: center;
+}
+
+.planner-date-picker-grid {
+  gap: 4px;
+}
+
+.planner-date-picker-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.planner-date-picker-day:hover,
+.planner-date-picker-day:focus-visible {
+  background: rgba(24, 41, 71, 0.88);
+  outline: none;
+}
+
+.planner-date-picker-day:active {
+  transform: scale(0.96);
+}
+
+.planner-date-picker-day.is-outside-month {
+  color: rgba(147, 164, 191, 0.4);
+}
+
+.planner-date-picker-day.is-today {
+  background: linear-gradient(180deg, rgba(124, 192, 255, 0.96), rgba(77, 159, 255, 0.92));
+  color: #06101f;
+  box-shadow:
+    0 8px 18px rgba(77, 159, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.planner-date-picker-day.is-today:hover,
+.planner-date-picker-day.is-today:focus-visible {
+  filter: brightness(1.05);
+}
+
 .planner-entry-list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
   align-items: start;
-}
-
-.todo-card.is-planner-layout.is-planner-waiting .planner-entry-list {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .planner-entry-item {
@@ -653,6 +782,10 @@ p {
     border-left: 0;
     border-top: 1px solid rgba(148, 163, 184, 0.12);
     padding-top: 18px;
+  }
+
+  .planner-date-picker {
+    width: min(100vw - 32px, 320px);
   }
 
   .planner-entry-list {

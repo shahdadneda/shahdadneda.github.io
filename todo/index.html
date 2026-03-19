@@ -80,9 +80,60 @@
 
             <aside class="planner-shell is-hidden" id="planner-shell">
               <div class="planner-toolbar">
-                <button class="planner-create-button" id="planner-create-button" type="button">
-                  New ESS Entry
-                </button>
+                <div class="planner-date-picker-shell" id="planner-date-picker-shell">
+                  <button
+                    class="planner-create-button"
+                    id="planner-create-button"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="planner-date-picker"
+                  >
+                    New ESS Entry
+                  </button>
+
+                  <div
+                    class="planner-date-picker is-hidden"
+                    id="planner-date-picker"
+                    role="dialog"
+                    aria-label="Choose an ESS entry date"
+                    aria-hidden="true"
+                  >
+                    <div class="planner-date-picker-header">
+                      <p class="planner-date-picker-title" id="planner-date-picker-title" aria-live="polite"></p>
+                      <div class="planner-date-picker-nav">
+                        <button
+                          class="planner-date-picker-nav-button"
+                          type="button"
+                          data-calendar-nav="previous"
+                          aria-label="Previous month"
+                        >
+                          <span aria-hidden="true">&#8249;</span>
+                        </button>
+                        <button
+                          class="planner-date-picker-nav-button"
+                          type="button"
+                          data-calendar-nav="next"
+                          aria-label="Next month"
+                        >
+                          <span aria-hidden="true">&#8250;</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="planner-date-picker-weekdays" aria-hidden="true">
+                      <span>S</span>
+                      <span>M</span>
+                      <span>T</span>
+                      <span>W</span>
+                      <span>T</span>
+                      <span>F</span>
+                      <span>S</span>
+                    </div>
+
+                    <div class="planner-date-picker-grid" id="planner-date-picker-grid"></div>
+                  </div>
+                </div>
               </div>
 
               <div class="planner-entry-list" id="planner-entry-list" aria-live="polite"></div>

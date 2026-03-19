@@ -27,15 +27,35 @@ const plannerShell = document.getElementById("planner-shell");
 const plannerCreateButton = document.getElementById("planner-create-button");
 const plannerEntryList = document.getElementById("planner-entry-list");
 const plannerEmptyMessage = document.getElementById("planner-empty-message");
+const plannerDatePickerShell = document.getElementById("planner-date-picker-shell");
+const plannerDatePicker = document.getElementById("planner-date-picker");
+const plannerDatePickerTitle = document.getElementById("planner-date-picker-title");
+const plannerDatePickerGrid = document.getElementById("planner-date-picker-grid");
+const MONTH_TITLE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric"
+});
+const ENTRY_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short"
+});
+const ENTRY_ARIA_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric"
+});
 
 let activeSection = loadActiveSection();
 let tasksBySection = loadTasksBySection();
 let draggedTaskId = null;
 let dropIndicatorTaskId = null;
+let isPlannerDatePickerOpen = false;
+let plannerCalendarMonth = getStartOfMonth(new Date());
 
 renderSectionState();
 renderEssPlannerControls();
 renderTasks();
+renderPlannerDatePicker();
 
 todoForm.addEventListener("submit", function (event) {
   event.preventDefault();
@@ -119,28 +139,14 @@ sectionLinks.forEach(function (link) {
 });
 
 plannerCreateButton.addEventListener("click", function () {
-  const entryName = window.prompt("Name this ESS planner entry:", "");
-
-  if (entryName === null) {
+  if (isPlannerDatePickerOpen) {
+    closePlannerDatePicker();
     return;
   }
 
-  const trimmedName = entryName.trim();
-
-  if (!trimmedName) {
-    formMessage.textContent = "Please enter a name for the ESS planner entry.";
-    return;
-  }
-
-  createEssPlannerEntry(trimmedName);
-  formMessage.textContent = "";
-  renderSectionState();
-  renderEssPlannerControls();
-  renderTasks();
-
-  if (canManageCurrentTasks()) {
-    taskInput.focus();
-  }
+  plannerCalendarMonth = getStartOfMonth(new Date());
+  renderPlannerDatePicker();
+  openPlannerDatePicker();
 });
 
 plannerEntryList.addEventListener("click", function (event) {
@@ -188,6 +194,63 @@ plannerEntryList.addEventListener("click", function (event) {
   renderEssPlannerControls();
   renderTasks();
   taskInput.focus();
+});
+
+plannerDatePicker.addEventListener("click", function (event) {
+  const navButton = event.target.closest(".planner-date-picker-nav-button");
+
+  if (navButton) {
+    plannerCalendarMonth = getStartOfMonth(
+      createCalendarDate(
+        plannerCalendarMonth.getFullYear(),
+        plannerCalendarMonth.getMonth() + (navButton.dataset.calendarNav === "next" ? 1 : -1),
+        1
+      )
+    );
+    renderPlannerDatePicker();
+    return;
+  }
+
+  const dayButton = event.target.closest(".planner-date-picker-day");
+
+  if (!dayButton) {
+    return;
+  }
+
+  const selectedDate = createDateFromIso(dayButton.dataset.date);
+
+  if (!selectedDate) {
+    return;
+  }
+
+  createEssPlannerEntry(formatEssEntryDate(selectedDate));
+  closePlannerDatePicker();
+  formMessage.textContent = "";
+  renderSectionState();
+  renderEssPlannerControls();
+  renderTasks();
+  taskInput.focus();
+});
+
+document.addEventListener("click", function (event) {
+  if (
+    !isPlannerDatePickerOpen ||
+    !plannerDatePickerShell ||
+    plannerDatePickerShell.contains(event.target)
+  ) {
+    return;
+  }
+
+  closePlannerDatePicker();
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key !== "Escape" || !isPlannerDatePickerOpen) {
+    return;
+  }
+
+  closePlannerDatePicker();
+  plannerCreateButton.focus();
 });
 
 taskList.addEventListener("dragstart", function (event) {
@@ -389,15 +452,15 @@ function loadActiveSection() {
 }
 
 function renderSectionState() {
-  const isPlannerSection = activeSection === ESS_SECTION_KEY;
-  const isWaitingForEssSelection = isPlannerSection && !getActiveEssEntry();
-
   todoHeading.textContent = SECTION_CONFIG[activeSection].title;
   todoContext.textContent = getSectionContext();
   todoContext.classList.toggle("is-hidden", !todoContext.textContent);
-  plannerShell.classList.toggle("is-hidden", !isPlannerSection);
-  todoCard.classList.toggle("is-planner-layout", isPlannerSection);
-  todoCard.classList.toggle("is-planner-waiting", isWaitingForEssSelection);
+  plannerShell.classList.toggle("is-hidden", activeSection !== ESS_SECTION_KEY);
+  todoCard.classList.toggle("is-planner-layout", activeSection === ESS_SECTION_KEY);
+
+  if (activeSection !== ESS_SECTION_KEY) {
+    closePlannerDatePicker();
+  }
 
   sectionLinks.forEach(function (link) {
     const isActive = link.dataset.section === activeSection;
@@ -417,6 +480,7 @@ function renderEssPlannerControls() {
     plannerEntryList.innerHTML = "";
     plannerEmptyMessage.textContent = "";
     plannerEmptyMessage.classList.add("is-hidden");
+    closePlannerDatePicker();
     return;
   }
 
@@ -855,8 +919,136 @@ function createEssPlannerEntry(name) {
   };
 
   planner.entries.unshift(newEntry);
-  planner.activeEntryId = null;
+  planner.activeEntryId = newEntry.id;
   saveTasks();
+}
+
+function renderPlannerDatePicker() {
+  if (!plannerDatePickerTitle || !plannerDatePickerGrid) {
+    return;
+  }
+
+  plannerDatePickerTitle.textContent = MONTH_TITLE_FORMATTER.format(plannerCalendarMonth);
+  plannerDatePickerGrid.innerHTML = "";
+
+  const calendarStartDate = getCalendarGridStart(plannerCalendarMonth);
+  const today = getStartOfDay(new Date());
+
+  for (let dayOffset = 0; dayOffset < 42; dayOffset += 1) {
+    const dayDate = createCalendarDate(
+      calendarStartDate.getFullYear(),
+      calendarStartDate.getMonth(),
+      calendarStartDate.getDate() + dayOffset
+    );
+    const dayButton = document.createElement("button");
+    const isCurrentMonth = dayDate.getMonth() === plannerCalendarMonth.getMonth();
+    const isToday = areSameCalendarDay(dayDate, today);
+
+    dayButton.className = "planner-date-picker-day";
+    dayButton.type = "button";
+    dayButton.dataset.date = formatDateForDataset(dayDate);
+    dayButton.textContent = String(dayDate.getDate());
+    dayButton.setAttribute("aria-label", ENTRY_ARIA_LABEL_FORMATTER.format(dayDate));
+
+    if (!isCurrentMonth) {
+      dayButton.classList.add("is-outside-month");
+    }
+
+    if (isToday) {
+      dayButton.classList.add("is-today");
+    }
+
+    plannerDatePickerGrid.appendChild(dayButton);
+  }
+}
+
+function openPlannerDatePicker() {
+  if (!plannerDatePicker) {
+    return;
+  }
+
+  isPlannerDatePickerOpen = true;
+  plannerDatePicker.classList.remove("is-hidden");
+  plannerDatePicker.setAttribute("aria-hidden", "false");
+  plannerCreateButton.setAttribute("aria-expanded", "true");
+
+  window.requestAnimationFrame(function () {
+    const todayButton = plannerDatePicker.querySelector(".planner-date-picker-day.is-today");
+    const firstVisibleButton = plannerDatePicker.querySelector(".planner-date-picker-day");
+    const nextFocusTarget = todayButton || firstVisibleButton;
+
+    if (nextFocusTarget) {
+      nextFocusTarget.focus();
+    }
+  });
+}
+
+function closePlannerDatePicker() {
+  if (!plannerDatePicker) {
+    return;
+  }
+
+  isPlannerDatePickerOpen = false;
+  plannerDatePicker.classList.add("is-hidden");
+  plannerDatePicker.setAttribute("aria-hidden", "true");
+  plannerCreateButton.setAttribute("aria-expanded", "false");
+}
+
+function formatEssEntryDate(date) {
+  return `${ENTRY_MONTH_FORMATTER.format(date)} ${date.getDate()}, ${String(date.getFullYear()).slice(-2)}'`;
+}
+
+function getCalendarGridStart(monthDate) {
+  return createCalendarDate(
+    monthDate.getFullYear(),
+    monthDate.getMonth(),
+    1 - monthDate.getDay()
+  );
+}
+
+function formatDateForDataset(date) {
+  const monthValue = String(date.getMonth() + 1).padStart(2, "0");
+  const dayValue = String(date.getDate()).padStart(2, "0");
+
+  return `${date.getFullYear()}-${monthValue}-${dayValue}`;
+}
+
+function createDateFromIso(dateValue) {
+  const dateParts = dateValue.split("-");
+
+  if (dateParts.length !== 3) {
+    return null;
+  }
+
+  const year = Number(dateParts[0]);
+  const month = Number(dateParts[1]) - 1;
+  const day = Number(dateParts[2]);
+
+  if ([year, month, day].some(Number.isNaN)) {
+    return null;
+  }
+
+  return createCalendarDate(year, month, day);
+}
+
+function createCalendarDate(year, month, day) {
+  return new Date(year, month, day);
+}
+
+function getStartOfMonth(date) {
+  return createCalendarDate(date.getFullYear(), date.getMonth(), 1);
+}
+
+function getStartOfDay(date) {
+  return createCalendarDate(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function areSameCalendarDay(firstDate, secondDate) {
+  return (
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth() &&
+    firstDate.getDate() === secondDate.getDate()
+  );
 }
 
 function getEssSelectionMessage() {
