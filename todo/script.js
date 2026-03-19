@@ -1,4 +1,16 @@
 const STORAGE_KEY = "shahdad-todo-items";
+const SECTION_STORAGE_KEY = "shahdad-todo-active-section";
+const SECTION_CONFIG = {
+  general: {
+    title: "General"
+  },
+  "weekend-goals": {
+    title: "Weekend Goals"
+  },
+  "ess-planner": {
+    title: "ESS planner"
+  }
+};
 
 const todoForm = document.getElementById("todo-form");
 const taskInput = document.getElementById("task-input");
@@ -6,9 +18,16 @@ const taskList = document.getElementById("task-list");
 const taskCount = document.getElementById("task-count");
 const emptyState = document.getElementById("empty-state");
 const formMessage = document.getElementById("form-message");
+const todoHeading = document.getElementById("todo-heading");
+const sectionLinks = Array.from(document.querySelectorAll(".section-link"));
 
-let tasks = normalizeTaskOrder(loadTasks());
+let activeSection = loadActiveSection();
+let tasksBySection = loadTasksBySection();
+let tasks = tasksBySection[activeSection].slice();
+let draggedTaskId = null;
+let dropIndicatorTaskId = null;
 
+renderSectionState();
 renderTasks();
 
 todoForm.addEventListener("submit", function (event) {
@@ -28,7 +47,7 @@ todoForm.addEventListener("submit", function (event) {
   };
 
   tasks.unshift(newTask);
-  saveTasks();
+  syncSectionTasks();
   renderTasks();
 
   todoForm.reset();
@@ -48,7 +67,7 @@ taskList.addEventListener("click", function (event) {
     return task.id !== taskId;
   });
 
-  saveTasks();
+  syncSectionTasks();
   renderTasks();
 });
 
@@ -63,8 +82,94 @@ taskList.addEventListener("change", function (event) {
 
   tasks = reorderTask(taskId, isCompleted);
 
-  saveTasks();
+  syncSectionTasks();
   renderTasks(previousPositions);
+});
+
+sectionLinks.forEach(function (link) {
+  link.addEventListener("click", function () {
+    const nextSection = link.dataset.section;
+
+    if (!SECTION_CONFIG[nextSection] || nextSection === activeSection) {
+      return;
+    }
+
+    activeSection = nextSection;
+    tasks = tasksBySection[activeSection].slice();
+    formMessage.textContent = "";
+    saveActiveSection();
+    renderSectionState();
+    renderTasks();
+    taskInput.focus();
+  });
+});
+
+taskList.addEventListener("dragstart", function (event) {
+  const draggedItem = event.target.closest(".task-item");
+
+  if (!draggedItem || event.target.closest(".task-checkbox, .task-delete")) {
+    event.preventDefault();
+    return;
+  }
+
+  draggedTaskId = draggedItem.dataset.taskId;
+  draggedItem.classList.add("is-dragging");
+
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedTaskId);
+  }
+});
+
+taskList.addEventListener("dragover", function (event) {
+  if (!draggedTaskId) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const draggedItem = taskList.querySelector(`[data-task-id="${draggedTaskId}"]`);
+
+  if (!draggedItem) {
+    return;
+  }
+
+  const nextItem = getDragAfterElement(event.clientY);
+  updateDropIndicator(nextItem);
+
+  if (!nextItem) {
+    animateTaskShift(function () {
+      taskList.appendChild(draggedItem);
+    });
+    return;
+  }
+
+  if (nextItem !== draggedItem) {
+    animateTaskShift(function () {
+      taskList.insertBefore(draggedItem, nextItem);
+    });
+  }
+});
+
+taskList.addEventListener("drop", function (event) {
+  if (!draggedTaskId) {
+    return;
+  }
+
+  event.preventDefault();
+  clearDropIndicator();
+  syncTasksToDomOrder();
+});
+
+taskList.addEventListener("dragend", function () {
+  const draggedItem = taskList.querySelector(".task-item.is-dragging");
+
+  if (draggedItem) {
+    draggedItem.classList.remove("is-dragging");
+  }
+
+  clearDropIndicator();
+  draggedTaskId = null;
 });
 
 function renderTasks(previousPositions) {
@@ -74,6 +179,7 @@ function renderTasks(previousPositions) {
     const listItem = document.createElement("li");
     listItem.className = "task-item";
     listItem.dataset.taskId = String(task.id);
+    listItem.draggable = true;
 
     if (task.completed) {
       listItem.classList.add("completed");
@@ -117,29 +223,83 @@ function updateTaskCount() {
   taskCount.textContent = String(remainingTasks);
 }
 
-function saveTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+function syncSectionTasks() {
+  tasksBySection[activeSection] = tasks;
+  saveTasks();
 }
 
-function loadTasks() {
+function saveTasks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasksBySection));
+}
+
+function loadTasksBySection() {
   const savedTasks = localStorage.getItem(STORAGE_KEY);
+  const emptySections = createEmptySections();
 
   if (!savedTasks) {
-    return [];
+    return emptySections;
   }
 
   try {
     const parsedTasks = JSON.parse(savedTasks);
 
-    if (!Array.isArray(parsedTasks)) {
-      return [];
+    if (Array.isArray(parsedTasks)) {
+      emptySections.general = parsedTasks;
+      return normalizeSections(emptySections);
     }
 
-    return parsedTasks;
+    if (!parsedTasks || typeof parsedTasks !== "object") {
+      return emptySections;
+    }
+
+    return normalizeSections({
+      ...emptySections,
+      ...parsedTasks
+    });
   } catch (error) {
     console.error("Could not read saved tasks.", error);
-    return [];
+    return emptySections;
   }
+}
+
+function createEmptySections() {
+  return Object.keys(SECTION_CONFIG).reduce(function (sections, sectionKey) {
+    sections[sectionKey] = [];
+    return sections;
+  }, {});
+}
+
+function normalizeSections(sectionMap) {
+  return Object.keys(SECTION_CONFIG).reduce(function (sections, sectionKey) {
+    const sectionTasks = sectionMap[sectionKey];
+    sections[sectionKey] = Array.isArray(sectionTasks) ? sectionTasks.slice() : [];
+    return sections;
+  }, {});
+}
+
+function saveActiveSection() {
+  localStorage.setItem(SECTION_STORAGE_KEY, activeSection);
+}
+
+function loadActiveSection() {
+  const savedSection = localStorage.getItem(SECTION_STORAGE_KEY);
+  return SECTION_CONFIG[savedSection] ? savedSection : "general";
+}
+
+function renderSectionState() {
+  todoHeading.textContent = SECTION_CONFIG[activeSection].title;
+
+  sectionLinks.forEach(function (link) {
+    const isActive = link.dataset.section === activeSection;
+    link.classList.toggle("is-active", isActive);
+
+    if (isActive) {
+      link.setAttribute("aria-current", "page");
+      return;
+    }
+
+    link.removeAttribute("aria-current");
+  });
 }
 
 function normalizeTaskOrder(taskItems) {
@@ -186,6 +346,84 @@ function reorderTask(taskId, isCompleted) {
   return remainingTasks;
 }
 
+function syncTasksToDomOrder() {
+  const taskLookup = new Map(
+    tasks.map(function (task) {
+      return [String(task.id), task];
+    })
+  );
+
+  tasks = Array.from(taskList.querySelectorAll(".task-item"))
+    .map(function (taskItem) {
+      return taskLookup.get(taskItem.dataset.taskId);
+    })
+    .filter(Boolean);
+
+  syncSectionTasks();
+}
+
+function getDragAfterElement(pointerY) {
+  const taskItems = Array.from(taskList.querySelectorAll(".task-item:not(.is-dragging)"));
+
+  return taskItems.reduce(
+    function (closest, taskItem) {
+      const box = taskItem.getBoundingClientRect();
+      const offset = pointerY - box.top - box.height / 2;
+
+      if (offset < 0 && offset > closest.offset) {
+        return {
+          offset: offset,
+          element: taskItem
+        };
+      }
+
+      return closest;
+    },
+    {
+      offset: Number.NEGATIVE_INFINITY,
+      element: null
+    }
+  ).element;
+}
+
+function updateDropIndicator(nextItem) {
+  taskList.classList.toggle("show-drop-at-end", !nextItem);
+
+  if (dropIndicatorTaskId && (!nextItem || nextItem.dataset.taskId !== dropIndicatorTaskId)) {
+    const previousIndicatorItem = taskList.querySelector(
+      `[data-task-id="${dropIndicatorTaskId}"]`
+    );
+
+    if (previousIndicatorItem) {
+      previousIndicatorItem.classList.remove("show-drop-before");
+    }
+  }
+
+  if (!nextItem) {
+    dropIndicatorTaskId = null;
+    return;
+  }
+
+  nextItem.classList.add("show-drop-before");
+  dropIndicatorTaskId = nextItem.dataset.taskId;
+}
+
+function clearDropIndicator() {
+  taskList.classList.remove("show-drop-at-end");
+
+  if (!dropIndicatorTaskId) {
+    return;
+  }
+
+  const indicatorItem = taskList.querySelector(`[data-task-id="${dropIndicatorTaskId}"]`);
+
+  if (indicatorItem) {
+    indicatorItem.classList.remove("show-drop-before");
+  }
+
+  dropIndicatorTaskId = null;
+}
+
 function getTaskPositions() {
   const positions = new Map();
 
@@ -194,6 +432,43 @@ function getTaskPositions() {
   });
 
   return positions;
+}
+
+function animateTaskShift(updateTaskOrder) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    updateTaskOrder();
+    return;
+  }
+
+  const previousPositions = getTaskPositions();
+
+  updateTaskOrder();
+
+  taskList.querySelectorAll(".task-item:not(.is-dragging)").forEach(function (taskItem) {
+    const previousTop = previousPositions.get(taskItem.dataset.taskId);
+
+    if (previousTop === undefined) {
+      return;
+    }
+
+    const currentTop = taskItem.getBoundingClientRect().top;
+    const offset = previousTop - currentTop;
+
+    if (offset === 0) {
+      return;
+    }
+
+    taskItem.animate(
+      [
+        { transform: `translateY(${offset}px)` },
+        { transform: "translateY(0)" }
+      ],
+      {
+        duration: 220,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+      }
+    );
+  });
 }
 
 function animateTaskReorder(previousPositions) {

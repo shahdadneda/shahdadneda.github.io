@@ -25,34 +25,55 @@
         <a class="back-link" href="../index.html">back to&nbsp;&nbsp;<strong>home</strong></a>
       </div>
 
-      <section class="todo-card" aria-labelledby="todo-heading">
-        <div class="todo-header">
-          <h2 id="todo-heading">Tasks</h2>
-          <div class="task-count" id="task-count" aria-live="polite">0</div>
-        </div>
+      <div class="todo-layout">
+        <aside class="section-sidebar" aria-label="Task sections">
+          <nav class="section-nav">
+            <button
+              class="section-link is-active"
+              type="button"
+              data-section="general"
+              aria-current="page"
+            >
+              General
+            </button>
+            <button class="section-link" type="button" data-section="weekend-goals">
+              Weekend Goals
+            </button>
+            <button class="section-link" type="button" data-section="ess-planner">
+              ESS planner
+            </button>
+          </nav>
+        </aside>
 
-        <form class="todo-form" id="todo-form">
-          <label class="sr-only" for="task-input">Add a new task</label>
-          <input
-            id="task-input"
-            name="task"
-            type="text"
-            placeholder="What do you want to get done?"
-            maxlength="120"
-            autocomplete="off"
-            required
-          />
-          <button type="submit">Add Task</button>
-        </form>
+        <section class="todo-card" aria-labelledby="todo-heading">
+          <div class="todo-header">
+            <h2 id="todo-heading">General</h2>
+            <div class="task-count" id="task-count" aria-live="polite">0</div>
+          </div>
 
-        <p class="form-message" id="form-message" aria-live="polite"></p>
+          <form class="todo-form" id="todo-form">
+            <label class="sr-only" for="task-input">Add a new task</label>
+            <input
+              id="task-input"
+              name="task"
+              type="text"
+              placeholder="What do you want to get done?"
+              maxlength="120"
+              autocomplete="off"
+              required
+            />
+            <button type="submit">Add Task</button>
+          </form>
 
-        <ul class="task-list" id="task-list" aria-live="polite"></ul>
+          <p class="form-message" id="form-message" aria-live="polite"></p>
 
-        <div class="empty-state" id="empty-state">
-          <p>No tasks yet. Add your first one above.</p>
-        </div>
-      </section>
+          <ul class="task-list" id="task-list" aria-live="polite"></ul>
+
+          <div class="empty-state" id="empty-state">
+            <p>No tasks yet. Add your first one above.</p>
+          </div>
+        </section>
+      </div>
     </main>
 
     <script src="./script.js"></script>
