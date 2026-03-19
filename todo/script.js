@@ -1,15 +1,48 @@
 const STORAGE_KEY = "shahdad-todo-items";
 const SECTION_STORAGE_KEY = "shahdad-todo-active-section";
+const GENERAL_SECTION_KEY = "general";
+const WEEKEND_SECTION_KEY = "weekend-goals";
 const ESS_SECTION_KEY = "ess-planner";
+const PLANNER_SECTION_KEYS = [WEEKEND_SECTION_KEY, ESS_SECTION_KEY];
+const PLANNER_SECTION_KEY_SET = new Set(PLANNER_SECTION_KEYS);
 const SECTION_CONFIG = {
-  general: {
-    title: "General"
+  [GENERAL_SECTION_KEY]: {
+    title: "General",
+    archiveButtonLabel: "Archives",
+    archiveEmptyMessage: "No archived General tasks yet.",
+    archiveNoSelectionMessage: "No archived General tasks yet."
   },
-  "weekend-goals": {
-    title: "Weekend Goals"
+  [WEEKEND_SECTION_KEY]: {
+    title: "Weekend Goals",
+    createButtonLabel: "New Weekend Entry",
+    archiveButtonLabel: "Archives",
+    datePickerLabel: "Choose a weekend entry date",
+    emptyPlannerMessage: "No weekend entries yet. Create one for an upcoming weekend.",
+    selectionPrompt: "Choose a weekend to start planning.",
+    noSelectionMessage: "Select a weekend first",
+    noEntryMessage: "Create a weekend entry first",
+    taskEmptyMessage: "No tasks for this weekend yet.",
+    legacyEntryName: "Existing Weekend Goals",
+    archiveEmptyMessage: "No archived weekend entries yet.",
+    archiveSelectionPrompt: "Choose an archived weekend entry to view its tasks.",
+    archiveNoSelectionMessage: "Select an archived weekend entry",
+    archiveNoEntryMessage: "No archived weekend entries yet."
   },
   [ESS_SECTION_KEY]: {
-    title: "ESS planner"
+    title: "ESS planner",
+    createButtonLabel: "New ESS Entry",
+    archiveButtonLabel: "Archives",
+    datePickerLabel: "Choose an ESS entry date",
+    emptyPlannerMessage: "No ESS planner entries yet. Create one for your next Tuesday or Thursday.",
+    selectionPrompt: "Choose an ESS entry to start planning.",
+    noSelectionMessage: "Select an ESS day first",
+    noEntryMessage: "Create an ESS entry first",
+    taskEmptyMessage: "No tasks for this ESS entry yet.",
+    legacyEntryName: "Existing ESS Planner",
+    archiveEmptyMessage: "No archived ESS entries yet.",
+    archiveSelectionPrompt: "Choose an archived ESS entry to view its tasks.",
+    archiveNoSelectionMessage: "Select an archived ESS entry",
+    archiveNoEntryMessage: "No archived ESS entries yet."
   }
 };
 
@@ -17,6 +50,8 @@ const todoForm = document.getElementById("todo-form");
 const todoCard = document.querySelector(".todo-card");
 const taskArea = document.getElementById("task-area");
 const taskInput = document.getElementById("task-input");
+const todoSubmitButton = todoForm.querySelector('button[type="submit"]');
+const todoArchiveToggle = document.getElementById("todo-archive-toggle");
 const taskList = document.getElementById("task-list");
 const emptyState = document.getElementById("empty-state");
 const formMessage = document.getElementById("form-message");
@@ -25,6 +60,7 @@ const todoContext = document.getElementById("todo-context");
 const sectionLinks = Array.from(document.querySelectorAll(".section-link"));
 const plannerShell = document.getElementById("planner-shell");
 const plannerCreateButton = document.getElementById("planner-create-button");
+const plannerArchiveToggle = document.getElementById("planner-archive-toggle");
 const plannerEntryList = document.getElementById("planner-entry-list");
 const plannerEmptyMessage = document.getElementById("planner-empty-message");
 const plannerDatePickerShell = document.getElementById("planner-date-picker-shell");
@@ -38,6 +74,11 @@ const MONTH_TITLE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 const ENTRY_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short"
 });
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_INDEX_BY_LABEL = MONTH_LABELS.reduce(function (monthLookup, monthLabel, index) {
+  monthLookup[monthLabel] = index;
+  return monthLookup;
+}, {});
 const ENTRY_ARIA_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
   month: "long",
@@ -51,17 +92,34 @@ let draggedTaskId = null;
 let dropIndicatorTaskId = null;
 let isPlannerDatePickerOpen = false;
 let plannerCalendarMonth = getStartOfMonth(new Date());
+let archiveViewBySection = createArchiveViewState();
 
 renderSectionState();
-renderEssPlannerControls();
+renderPlannerControls();
 renderTasks();
 renderPlannerDatePicker();
+
+todoArchiveToggle.addEventListener("click", function () {
+  if (activeSection !== GENERAL_SECTION_KEY) {
+    return;
+  }
+
+  setArchiveView(GENERAL_SECTION_KEY, !isArchiveView(GENERAL_SECTION_KEY));
+  renderSectionState();
+  formMessage.textContent = "";
+  renderTasks();
+});
 
 todoForm.addEventListener("submit", function (event) {
   event.preventDefault();
 
+  if (activeSection === GENERAL_SECTION_KEY && isArchiveView(GENERAL_SECTION_KEY)) {
+    formMessage.textContent = "Leave Archives to add a new task.";
+    return;
+  }
+
   if (!canManageCurrentTasks()) {
-    formMessage.textContent = getEssSelectionMessage();
+    formMessage.textContent = getPlannerSelectionMessage();
     return;
   }
 
@@ -88,6 +146,19 @@ todoForm.addEventListener("submit", function (event) {
 });
 
 taskList.addEventListener("click", function (event) {
+  const archiveButton = event.target.closest(".task-archive");
+
+  if (archiveButton) {
+    const taskId = Number(archiveButton.dataset.id);
+
+    animateTaskExit(taskId, function () {
+      toggleGeneralTaskArchive(taskId);
+      renderTasks();
+      formMessage.textContent = "";
+    });
+    return;
+  }
+
   const deleteButton = event.target.closest(".task-delete");
 
   if (deleteButton) {
@@ -129,7 +200,7 @@ sectionLinks.forEach(function (link) {
     formMessage.textContent = "";
     saveActiveSection();
     renderSectionState();
-    renderEssPlannerControls();
+    renderPlannerControls();
     renderTasks();
 
     if (canManageCurrentTasks()) {
@@ -149,27 +220,46 @@ plannerCreateButton.addEventListener("click", function () {
   openPlannerDatePicker();
 });
 
+plannerArchiveToggle.addEventListener("click", function () {
+  if (!supportsPlannerArchives(activeSection)) {
+    return;
+  }
+
+  setArchiveView(activeSection, !isArchiveView(activeSection));
+  closePlannerDatePicker();
+  formMessage.textContent = "";
+  renderSectionState();
+  renderPlannerControls();
+  renderTasks();
+});
+
 plannerEntryList.addEventListener("click", function (event) {
+  const archiveButton = event.target.closest(".planner-entry-archive");
+
+  if (archiveButton) {
+    animatePlannerEntryExit(archiveButton.dataset.entryId, function () {
+      togglePlannerEntryArchive(archiveButton.dataset.entryId);
+      formMessage.textContent = "";
+      renderSectionState();
+      renderPlannerControls();
+      renderTasks();
+    });
+    return;
+  }
+
   const deleteButton = event.target.closest(".planner-entry-delete");
 
   if (deleteButton) {
     const entryIdToDelete = deleteButton.dataset.entryId;
-    const planner = getEssPlannerData();
-
-    planner.entries = planner.entries.filter(function (entry) {
-      return entry.id !== entryIdToDelete;
+    animatePlannerEntryExit(entryIdToDelete, function () {
+      deletePlannerEntry(entryIdToDelete);
+      saveTasks();
+      resetDragState();
+      formMessage.textContent = "";
+      renderSectionState();
+      renderPlannerControls();
+      renderTasks();
     });
-
-    if (planner.activeEntryId === entryIdToDelete) {
-      planner.activeEntryId = null;
-    }
-
-    saveTasks();
-    resetDragState();
-    formMessage.textContent = "";
-    renderSectionState();
-    renderEssPlannerControls();
-    renderTasks();
     return;
   }
 
@@ -180,7 +270,7 @@ plannerEntryList.addEventListener("click", function (event) {
   }
 
   const nextEntryId = entryButton.dataset.entryId;
-  const planner = getEssPlannerData();
+  const planner = getPlannerData();
 
   if (planner.activeEntryId === nextEntryId) {
     return;
@@ -191,7 +281,7 @@ plannerEntryList.addEventListener("click", function (event) {
   resetDragState();
   formMessage.textContent = "";
   renderSectionState();
-  renderEssPlannerControls();
+  renderPlannerControls();
   renderTasks();
   taskInput.focus();
 });
@@ -223,11 +313,16 @@ plannerDatePicker.addEventListener("click", function (event) {
     return;
   }
 
-  createEssPlannerEntry(formatEssEntryDate(selectedDate));
+  const didCreatePlannerEntry = createPlannerEntryFromDate(activeSection, selectedDate);
+
+  if (!didCreatePlannerEntry) {
+    return;
+  }
+
   closePlannerDatePicker();
   formMessage.textContent = "";
   renderSectionState();
-  renderEssPlannerControls();
+  renderPlannerControls();
   renderTasks();
   taskInput.focus();
 });
@@ -322,15 +417,16 @@ taskList.addEventListener("dragend", function () {
 });
 
 function renderTasks(previousPositions) {
-  const currentTasks = getCurrentTasks();
+  const currentTasks = getVisibleTasks();
   const hasPlannerEntry = canManageCurrentTasks();
 
   taskList.innerHTML = "";
   updateTaskComposerState(hasPlannerEntry);
+  renderGeneralArchiveToggle();
 
   if (!hasPlannerEntry) {
     updateTaskCount(currentTasks);
-    emptyState.querySelector("p").textContent = getEssSelectionMessage();
+    emptyState.querySelector("p").textContent = getPlannerSelectionMessage();
     emptyState.classList.remove("is-hidden");
     return;
   }
@@ -344,6 +440,30 @@ function renderTasks(previousPositions) {
     if (task.completed) {
       listItem.classList.add("completed");
     }
+
+    const taskActionsMarkup =
+      activeSection === GENERAL_SECTION_KEY
+        ? `
+          <div class="task-actions">
+            <button
+              class="task-archive planner-entry-archive${task.archived ? " is-archived" : ""}"
+              type="button"
+              data-id="${task.id}"
+              aria-label="${task.archived ? "Unarchive" : "Archive"} ${escapeHtml(task.text)}"
+              title="${task.archived ? "Unarchive" : "Archive"}"
+            >
+              ${task.archived ? getCheckIconMarkup() : getArchiveIconMarkup()}
+            </button>
+            <button class="task-delete" type="button" data-id="${task.id}">
+              Delete
+            </button>
+          </div>
+        `
+        : `
+          <button class="task-delete" type="button" data-id="${task.id}">
+            Delete
+          </button>
+        `;
 
     listItem.innerHTML = `
       <label class="task-main">
@@ -359,9 +479,7 @@ function renderTasks(previousPositions) {
         </span>
         <span class="task-text">${escapeHtml(task.text)}</span>
       </label>
-      <button class="task-delete" type="button" data-id="${task.id}">
-        Delete
-      </button>
+      ${taskActionsMarkup}
     `;
 
     taskList.appendChild(listItem);
@@ -426,7 +544,10 @@ function loadTasksBySection() {
 function createEmptySections() {
   return {
     general: [],
-    "weekend-goals": [],
+    [WEEKEND_SECTION_KEY]: {
+      entries: [],
+      activeEntryId: null
+    },
     [ESS_SECTION_KEY]: {
       entries: [],
       activeEntryId: null
@@ -437,8 +558,16 @@ function createEmptySections() {
 function normalizeSections(sectionMap) {
   return {
     general: normalizeTaskList(sectionMap.general),
-    "weekend-goals": normalizeTaskList(sectionMap["weekend-goals"]),
-    [ESS_SECTION_KEY]: normalizeEssPlannerSection(sectionMap[ESS_SECTION_KEY])
+    [WEEKEND_SECTION_KEY]: normalizePlannerSection(
+      sectionMap[WEEKEND_SECTION_KEY],
+      SECTION_CONFIG[WEEKEND_SECTION_KEY],
+      WEEKEND_SECTION_KEY
+    ),
+    [ESS_SECTION_KEY]: normalizePlannerSection(
+      sectionMap[ESS_SECTION_KEY],
+      SECTION_CONFIG[ESS_SECTION_KEY],
+      ESS_SECTION_KEY
+    )
   };
 }
 
@@ -455,10 +584,10 @@ function renderSectionState() {
   todoHeading.textContent = SECTION_CONFIG[activeSection].title;
   todoContext.textContent = getSectionContext();
   todoContext.classList.toggle("is-hidden", !todoContext.textContent);
-  plannerShell.classList.toggle("is-hidden", activeSection !== ESS_SECTION_KEY);
-  todoCard.classList.toggle("is-planner-layout", activeSection === ESS_SECTION_KEY);
+  plannerShell.classList.toggle("is-hidden", !isPlannerSection(activeSection));
+  todoCard.classList.toggle("is-planner-layout", isPlannerSection(activeSection));
 
-  if (activeSection !== ESS_SECTION_KEY) {
+  if (!isPlannerSection(activeSection)) {
     closePlannerDatePicker();
   }
 
@@ -475,24 +604,51 @@ function renderSectionState() {
   });
 }
 
-function renderEssPlannerControls() {
-  if (activeSection !== ESS_SECTION_KEY) {
+function renderPlannerControls() {
+  if (!isPlannerSection(activeSection)) {
     plannerEntryList.innerHTML = "";
     plannerEmptyMessage.textContent = "";
     plannerEmptyMessage.classList.add("is-hidden");
+    plannerArchiveToggle.classList.add("is-hidden");
+    plannerArchiveToggle.classList.remove("is-active");
+    plannerArchiveToggle.setAttribute("aria-pressed", "false");
     closePlannerDatePicker();
     return;
   }
 
-  const planner = getEssPlannerData();
+  const plannerConfig = getPlannerConfig();
+  const visibleEntries = getVisiblePlannerEntries();
+  const hasArchivedEntries = getArchivedPlannerEntriesCount(activeSection) > 0;
+  plannerCreateButton.textContent = plannerConfig.createButtonLabel;
+  plannerDatePicker.setAttribute("aria-label", plannerConfig.datePickerLabel);
+  plannerArchiveToggle.textContent = plannerConfig.archiveButtonLabel || "Archives";
+  plannerArchiveToggle.classList.toggle("is-hidden", !supportsPlannerArchives(activeSection));
+  plannerArchiveToggle.classList.toggle("is-active", isArchiveView(activeSection));
+  plannerArchiveToggle.setAttribute("aria-pressed", String(isArchiveView(activeSection)));
+  plannerArchiveToggle.disabled = supportsPlannerArchives(activeSection)
+    ? !hasArchivedEntries && !isArchiveView(activeSection)
+    : false;
   plannerEntryList.innerHTML = "";
 
-  planner.entries.forEach(function (entry) {
+  visibleEntries.forEach(function (entry) {
     const entryItem = document.createElement("div");
+    const archiveButtonMarkup = supportsPlannerArchives(activeSection)
+      ? `
+        <button
+          class="planner-entry-archive${entry.archived ? " is-archived" : ""}"
+          type="button"
+          data-entry-id="${entry.id}"
+          aria-label="${entry.archived ? "Unarchive" : "Archive"} ${escapeHtml(entry.name)}"
+          title="${entry.archived ? "Unarchive" : "Archive"}"
+        >
+          ${entry.archived ? getCheckIconMarkup() : getArchiveIconMarkup()}
+        </button>
+      `
+      : "";
 
     entryItem.className = "planner-entry-item";
 
-    if (entry.id === planner.activeEntryId) {
+    if (entry.id === getPlannerData().activeEntryId) {
       entryItem.classList.add("is-active");
     }
 
@@ -500,22 +656,25 @@ function renderEssPlannerControls() {
       <button class="planner-entry-button" type="button" data-entry-id="${entry.id}">
         <span class="planner-entry-name">${escapeHtml(entry.name)}</span>
       </button>
-      <button
-        class="planner-entry-delete"
-        type="button"
-        data-entry-id="${entry.id}"
-        aria-label="Delete ${escapeHtml(entry.name)}"
-      >
-        X
-      </button>
+      <div class="planner-entry-actions">
+        ${archiveButtonMarkup}
+        <button
+          class="planner-entry-delete"
+          type="button"
+          data-entry-id="${entry.id}"
+          aria-label="Delete ${escapeHtml(entry.name)}"
+          title="Delete"
+        >
+          X
+        </button>
+      </div>
     `;
 
     plannerEntryList.appendChild(entryItem);
   });
 
-  if (planner.entries.length === 0) {
-    plannerEmptyMessage.textContent =
-      "No ESS planner entries yet. Create one for your next Tuesday or Thursday.";
+  if (visibleEntries.length === 0) {
+    plannerEmptyMessage.textContent = getPlannerListEmptyMessage();
     plannerEmptyMessage.classList.remove("is-hidden");
     return;
   }
@@ -576,13 +735,24 @@ function syncTasksToDomOrder() {
     })
   );
 
-  const nextTasks = Array.from(taskList.querySelectorAll(".task-item"))
+  const reorderedVisibleTasks = Array.from(taskList.querySelectorAll(".task-item"))
     .map(function (taskItem) {
       return taskLookup.get(taskItem.dataset.taskId);
     })
     .filter(Boolean);
 
-  setCurrentTasks(nextTasks);
+  if (activeSection !== GENERAL_SECTION_KEY) {
+    setCurrentTasks(reorderedVisibleTasks);
+    return;
+  }
+
+  const hiddenTasks = currentTasks.filter(function (task) {
+    return !reorderedVisibleTasks.some(function (visibleTask) {
+      return visibleTask.id === task.id;
+    });
+  });
+
+  setCurrentTasks(reorderedVisibleTasks.concat(hiddenTasks));
 }
 
 function getDragAfterElement(pointerY) {
@@ -745,14 +915,15 @@ function normalizeTaskList(taskItems) {
     normalizedTasks.push({
       id: typeof task.id === "number" ? task.id : Date.now() + index,
       text: text,
-      completed: Boolean(task.completed)
+      completed: Boolean(task.completed),
+      archived: Boolean(task.archived)
     });
 
     return normalizedTasks;
   }, []);
 }
 
-function normalizeEssPlannerSection(sectionValue) {
+function normalizePlannerSection(sectionValue, plannerConfig, sectionKey) {
   if (Array.isArray(sectionValue)) {
     const legacyTasks = normalizeTaskList(sectionValue);
 
@@ -763,15 +934,20 @@ function normalizeEssPlannerSection(sectionValue) {
       };
     }
 
+    const legacyEntryId = createEntryId("legacy");
+
     return {
       entries: [
         {
-          id: "legacy-ess-entry",
-          name: "Existing ESS Planner",
-          tasks: legacyTasks
+          id: legacyEntryId,
+          name: plannerConfig.legacyEntryName,
+          tasks: legacyTasks,
+          archived: false,
+          deleted: false,
+          sortKey: 0
         }
       ],
-      activeEntryId: null
+      activeEntryId: legacyEntryId
     };
   }
 
@@ -795,9 +971,12 @@ function normalizeEssPlannerSection(sectionValue) {
     }
 
     normalizedEntries.push({
-      id: typeof entry.id === "string" && entry.id ? entry.id : `ess-entry-${Date.now()}-${index}`,
+      id: typeof entry.id === "string" && entry.id ? entry.id : createEntryId(index),
       name: name,
-      tasks: normalizeTaskList(entry.tasks)
+      tasks: normalizeTaskList(entry.tasks),
+      archived: Boolean(entry.archived),
+      deleted: Boolean(entry.deleted),
+      sortKey: getPlannerEntrySortKey(entry, name, sectionKey)
     });
 
     return normalizedEntries;
@@ -810,28 +989,28 @@ function normalizeEssPlannerSection(sectionValue) {
     : null;
 
   return {
-    entries: entries,
+    entries: sortPlannerEntries(entries),
     activeEntryId: activeEntryId
   };
 }
 
 function getCurrentTasks() {
-  if (activeSection !== ESS_SECTION_KEY) {
+  if (!isPlannerSection(activeSection)) {
     return tasksBySection[activeSection];
   }
 
-  const activeEntry = getActiveEssEntry();
+  const activeEntry = getActivePlannerEntry();
   return activeEntry ? activeEntry.tasks : [];
 }
 
 function setCurrentTasks(nextTasks) {
-  if (activeSection !== ESS_SECTION_KEY) {
+  if (!isPlannerSection(activeSection)) {
     tasksBySection[activeSection] = nextTasks;
     saveTasks();
     return;
   }
 
-  const planner = getEssPlannerData();
+  const planner = getPlannerData();
   planner.entries = planner.entries.map(function (entry) {
     if (entry.id !== planner.activeEntryId) {
       return entry;
@@ -844,26 +1023,30 @@ function setCurrentTasks(nextTasks) {
   });
 
   saveTasks();
-  renderEssPlannerControls();
+  renderPlannerControls();
 }
 
 function canManageCurrentTasks() {
-  if (activeSection !== ESS_SECTION_KEY) {
+  if (!isPlannerSection(activeSection)) {
     return true;
   }
 
-  return Boolean(getActiveEssEntry());
+  return Boolean(getActivePlannerEntry());
 }
 
 function getSectionContext() {
-  if (activeSection !== ESS_SECTION_KEY) {
+  if (!isPlannerSection(activeSection)) {
+    if (activeSection === GENERAL_SECTION_KEY && isArchiveView(GENERAL_SECTION_KEY)) {
+      return "Archives";
+    }
+
     return "";
   }
 
-  const activeEntry = getActiveEssEntry();
+  const activeEntry = getActivePlannerEntry();
 
   if (!activeEntry) {
-    return "Choose an ESS entry to start planning.";
+    return getPlannerSelectionPrompt();
   }
 
   return activeEntry.name;
@@ -871,56 +1054,461 @@ function getSectionContext() {
 
 function updateTaskComposerState(hasPlannerEntry) {
   const canEditTasks = typeof hasPlannerEntry === "boolean" ? hasPlannerEntry : canManageCurrentTasks();
+  const isGeneralArchiveMode =
+    activeSection === GENERAL_SECTION_KEY && isArchiveView(GENERAL_SECTION_KEY);
+  const shouldDisableComposer = !canEditTasks || isGeneralArchiveMode;
 
-  taskInput.disabled = !canEditTasks;
-  todoForm.querySelector("button").disabled = !canEditTasks;
-  taskInput.placeholder = canEditTasks
-    ? getTaskPlaceholder()
-    : getEssSelectionMessage();
+  taskInput.disabled = shouldDisableComposer;
+  todoSubmitButton.disabled = shouldDisableComposer;
+  taskInput.placeholder = shouldDisableComposer
+    ? isGeneralArchiveMode
+      ? "Leave Archives to add a new task"
+      : getPlannerSelectionMessage()
+    : getTaskPlaceholder();
+}
+
+function renderGeneralArchiveToggle() {
+  if (!todoArchiveToggle) {
+    return;
+  }
+
+  const isGeneralSection = activeSection === GENERAL_SECTION_KEY;
+  const isActive = isGeneralSection && isArchiveView(GENERAL_SECTION_KEY);
+  const hasArchivedTasks = getArchivedGeneralTasksCount() > 0;
+
+  todoArchiveToggle.classList.toggle("is-hidden", !isGeneralSection);
+  todoArchiveToggle.classList.toggle("is-active", isActive);
+  todoArchiveToggle.setAttribute("aria-pressed", String(isActive));
+  todoArchiveToggle.disabled = isGeneralSection ? !hasArchivedTasks && !isActive : false;
 }
 
 function getTaskPlaceholder() {
-  if (activeSection === ESS_SECTION_KEY) {
-    const activeEntry = getActiveEssEntry();
-    return activeEntry ? `Add a task for ${activeEntry.name}` : getEssSelectionMessage();
+  if (activeSection === GENERAL_SECTION_KEY) {
+    return "What do you want to get done?";
+  }
+
+  if (isPlannerSection(activeSection)) {
+    const activeEntry = getActivePlannerEntry();
+    return activeEntry ? `Add a task for ${activeEntry.name}` : getPlannerSelectionMessage();
   }
 
   return "What do you want to get done?";
 }
 
+function getVisibleTasks() {
+  const currentTasks = getCurrentTasks();
+
+  if (activeSection !== GENERAL_SECTION_KEY) {
+    return currentTasks;
+  }
+
+  return currentTasks.filter(function (task) {
+    return isArchiveView(GENERAL_SECTION_KEY) ? task.archived : !task.archived;
+  });
+}
+
+function getArchivedGeneralTasksCount() {
+  return tasksBySection[GENERAL_SECTION_KEY].filter(function (task) {
+    return task.archived;
+  }).length;
+}
+
+function toggleGeneralTaskArchive(taskId) {
+  if (activeSection !== GENERAL_SECTION_KEY) {
+    return;
+  }
+
+  tasksBySection[GENERAL_SECTION_KEY] = tasksBySection[GENERAL_SECTION_KEY].map(function (task) {
+    if (task.id !== taskId) {
+      return task;
+    }
+
+    return {
+      ...task,
+      archived: !task.archived
+    };
+  });
+
+  saveTasks();
+}
+
+function animateTaskExit(taskId, onComplete) {
+  const taskItem = taskList.querySelector(`[data-task-id="${taskId}"]`);
+
+  if (
+    !taskItem ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    onComplete();
+    return;
+  }
+
+  const taskHeight = taskItem.getBoundingClientRect().height;
+  let hasCompleted = false;
+
+  function finishTransition() {
+    if (hasCompleted) {
+      return;
+    }
+
+    hasCompleted = true;
+    onComplete();
+  }
+
+  taskItem.style.height = `${taskHeight}px`;
+  taskItem.style.overflow = "hidden";
+
+  window.requestAnimationFrame(function () {
+    taskItem.classList.add("is-exiting");
+    taskItem.style.height = "0px";
+  });
+
+  taskItem.addEventListener("transitionend", finishTransition, { once: true });
+  window.setTimeout(finishTransition, 260);
+}
+
 function getEmptyStateMessage() {
-  if (activeSection === ESS_SECTION_KEY) {
-    return "No tasks for this ESS entry yet.";
+  if (activeSection === GENERAL_SECTION_KEY) {
+    return isArchiveView(GENERAL_SECTION_KEY)
+      ? SECTION_CONFIG[GENERAL_SECTION_KEY].archiveEmptyMessage
+      : "No tasks yet. Add your first one above.";
+  }
+
+  if (isPlannerSection(activeSection)) {
+    return getPlannerConfig().taskEmptyMessage;
   }
 
   return "No tasks yet. Add your first one above.";
 }
 
-function getEssPlannerData() {
-  return tasksBySection[ESS_SECTION_KEY];
+function getPlannerData(sectionKey) {
+  const resolvedSectionKey = sectionKey || activeSection;
+  return tasksBySection[resolvedSectionKey];
 }
 
-function getActiveEssEntry() {
-  const planner = getEssPlannerData();
+function getActivePlannerEntry(sectionKey) {
+  const planner = getPlannerData(sectionKey);
+  const visibleEntries = getVisiblePlannerEntries(sectionKey);
 
   return (
-    planner.entries.find(function (entry) {
+    visibleEntries.find(function (entry) {
       return entry.id === planner.activeEntryId;
     }) || null
   );
 }
 
-function createEssPlannerEntry(name) {
-  const planner = getEssPlannerData();
+function createPlannerEntry(sectionKey, entryDescriptor) {
+  const planner = getPlannerData(sectionKey);
   const newEntry = {
-    id: createEntryId(),
-    name: name,
-    tasks: []
+    id: createEntryId(sectionKey),
+    name: entryDescriptor.name,
+    tasks: [],
+    archived: false,
+    deleted: false,
+    sortKey: entryDescriptor.sortKey
   };
 
-  planner.entries.unshift(newEntry);
+  planner.entries = sortPlannerEntries(planner.entries.concat(newEntry));
   planner.activeEntryId = newEntry.id;
+
+  if (supportsPlannerArchives(sectionKey)) {
+    setArchiveView(sectionKey, false);
+  }
+
   saveTasks();
+}
+
+function createPlannerEntryFromDate(sectionKey, selectedDate) {
+  const entryDescriptor = getPlannerEntryDescriptorFromDate(sectionKey, selectedDate);
+
+  if (!entryDescriptor) {
+    return false;
+  }
+
+  if (sectionKey !== WEEKEND_SECTION_KEY) {
+    createPlannerEntry(sectionKey, entryDescriptor);
+    return true;
+  }
+
+  const planner = getPlannerData(sectionKey);
+  const existingEntry = planner.entries.find(function (entry) {
+    return entry.sortKey === entryDescriptor.sortKey && !entry.deleted;
+  });
+
+  if (existingEntry) {
+    planner.activeEntryId = existingEntry.id;
+    saveTasks();
+    return true;
+  }
+
+  createPlannerEntry(sectionKey, entryDescriptor);
+  return true;
+}
+
+function getPlannerEntryDescriptorFromDate(sectionKey, selectedDate) {
+  if (sectionKey === WEEKEND_SECTION_KEY) {
+    const weekendStartDate = getWeekendStartDate(selectedDate);
+
+    if (!weekendStartDate) {
+      formMessage.textContent = "Pick a Saturday or Sunday to create a Weekend Goals entry.";
+      return null;
+    }
+
+    return {
+      name: formatWeekendEntryDate(weekendStartDate),
+      sortKey: getStartOfDay(weekendStartDate).getTime()
+    };
+  }
+
+  return {
+    name: formatPlannerEntryDate(selectedDate),
+    sortKey: getStartOfDay(selectedDate).getTime()
+  };
+}
+
+function deletePlannerEntry(entryId) {
+  const planner = getPlannerData();
+  const entryToDelete = findPlannerEntryById(activeSection, entryId);
+
+  if (!entryToDelete) {
+    return;
+  }
+
+  planner.entries = planner.entries.filter(function (entry) {
+    return entry.id !== entryId;
+  });
+
+  if (planner.activeEntryId === entryId) {
+    planner.activeEntryId = null;
+  }
+}
+
+function togglePlannerEntryArchive(entryId) {
+  const planner = getPlannerData();
+  const entryToToggle = findPlannerEntryById(activeSection, entryId);
+
+  if (!entryToToggle || !supportsPlannerArchives(activeSection)) {
+    return;
+  }
+
+  if (entryToToggle.archived) {
+    planner.entries = planner.entries.map(function (entry) {
+      if (entry.id !== entryId) {
+        return entry;
+      }
+
+      return {
+        ...entry,
+        archived: false,
+        deleted: false
+      };
+    });
+
+    if (planner.activeEntryId === entryId && isArchiveView(activeSection)) {
+      planner.activeEntryId = null;
+    }
+
+    if (isArchiveView(activeSection)) {
+      formMessage.textContent = "";
+    }
+
+    return;
+  }
+
+  planner.entries = planner.entries.map(function (entry) {
+    if (entry.id !== entryId) {
+      return entry;
+    }
+
+    return {
+      ...entry,
+      archived: true,
+      deleted: false
+    };
+  });
+
+  if (planner.activeEntryId === entryId && !isArchiveView(activeSection)) {
+    planner.activeEntryId = null;
+  }
+}
+
+function getVisiblePlannerEntries(sectionKey) {
+  const resolvedSectionKey = sectionKey || activeSection;
+  const planner = getPlannerData(resolvedSectionKey);
+
+  if (!planner) {
+    return [];
+  }
+
+  if (supportsPlannerArchives(resolvedSectionKey)) {
+    return sortPlannerEntries(
+      planner.entries.filter(function (entry) {
+        if (isArchiveView(resolvedSectionKey)) {
+          return entry.archived;
+        }
+
+        return !entry.archived && !entry.deleted;
+      })
+    );
+  }
+
+  return sortPlannerEntries(planner.entries);
+}
+
+function sortPlannerEntries(entries) {
+  return entries.slice().sort(function (firstEntry, secondEntry) {
+    return getComparableSortKey(secondEntry) - getComparableSortKey(firstEntry);
+  });
+}
+
+function getComparableSortKey(entry) {
+  return typeof entry.sortKey === "number" && Number.isFinite(entry.sortKey) ? entry.sortKey : 0;
+}
+
+function getPlannerEntrySortKey(entry, entryName, sectionKey) {
+  if (typeof entry.sortKey === "number" && Number.isFinite(entry.sortKey)) {
+    return entry.sortKey;
+  }
+
+  return inferPlannerEntrySortKey(entryName, sectionKey);
+}
+
+function inferPlannerEntrySortKey(entryName, sectionKey) {
+  if (sectionKey === ESS_SECTION_KEY) {
+    return inferEssPlannerSortKey(entryName);
+  }
+
+  if (sectionKey === WEEKEND_SECTION_KEY) {
+    return inferWeekendPlannerSortKey(entryName);
+  }
+
+  return 0;
+}
+
+function inferEssPlannerSortKey(entryName) {
+  const essMatch = entryName.match(/^([A-Z][a-z]{2}) (\d{1,2}), (\d{2})'$/);
+
+  if (!essMatch) {
+    return 0;
+  }
+
+  const monthIndex = MONTH_INDEX_BY_LABEL[essMatch[1]];
+  const dayOfMonth = Number(essMatch[2]);
+  const fullYear = 2000 + Number(essMatch[3]);
+
+  if (monthIndex === undefined || Number.isNaN(dayOfMonth) || Number.isNaN(fullYear)) {
+    return 0;
+  }
+
+  return createCalendarDate(fullYear, monthIndex, dayOfMonth).getTime();
+}
+
+function inferWeekendPlannerSortKey(entryName) {
+  const currentYear = new Date().getFullYear();
+  const sameMonthMatch = entryName.match(/^([A-Z][a-z]{2}) (\d{1,2})-(\d{1,2})$/);
+  const splitMonthMatch = entryName.match(/^([A-Z][a-z]{2}) (\d{1,2})-([A-Z][a-z]{2}) (\d{1,2})$/);
+
+  if (sameMonthMatch) {
+    const monthIndex = MONTH_INDEX_BY_LABEL[sameMonthMatch[1]];
+    const dayOfMonth = Number(sameMonthMatch[2]);
+
+    if (monthIndex === undefined || Number.isNaN(dayOfMonth)) {
+      return 0;
+    }
+
+    return createCalendarDate(currentYear, monthIndex, dayOfMonth).getTime();
+  }
+
+  if (!splitMonthMatch) {
+    return 0;
+  }
+
+  const startMonthIndex = MONTH_INDEX_BY_LABEL[splitMonthMatch[1]];
+  const dayOfMonth = Number(splitMonthMatch[2]);
+
+  if (startMonthIndex === undefined || Number.isNaN(dayOfMonth)) {
+    return 0;
+  }
+
+  return createCalendarDate(currentYear, startMonthIndex, dayOfMonth).getTime();
+}
+
+function getArchivedPlannerEntriesCount(sectionKey) {
+  const planner = getPlannerData(sectionKey);
+
+  if (!planner || !supportsPlannerArchives(sectionKey)) {
+    return 0;
+  }
+
+  return planner.entries.filter(function (entry) {
+    return entry.archived;
+  }).length;
+}
+
+function animatePlannerEntryExit(entryId, onComplete) {
+  const entryControl = plannerEntryList.querySelector(`[data-entry-id="${entryId}"]`);
+  const entryItem = entryControl ? entryControl.closest(".planner-entry-item") : null;
+
+  if (
+    !entryItem ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    onComplete();
+    return;
+  }
+
+  const entryHeight = entryItem.getBoundingClientRect().height;
+  let hasCompleted = false;
+
+  function finishTransition() {
+    if (hasCompleted) {
+      return;
+    }
+
+    hasCompleted = true;
+    onComplete();
+  }
+
+  entryItem.style.height = `${entryHeight}px`;
+  entryItem.style.overflow = "hidden";
+
+  window.requestAnimationFrame(function () {
+    entryItem.classList.add("is-exiting");
+    entryItem.style.height = "0px";
+  });
+
+  entryItem.addEventListener("transitionend", finishTransition, { once: true });
+  window.setTimeout(finishTransition, 260);
+}
+
+function findPlannerEntryById(sectionKey, entryId) {
+  const planner = getPlannerData(sectionKey);
+
+  return (
+    planner.entries.find(function (entry) {
+      return entry.id === entryId;
+    }) || null
+  );
+}
+
+function getPlannerSelectionPrompt() {
+  const plannerConfig = getPlannerConfig();
+
+  if (supportsPlannerArchives(activeSection) && isArchiveView(activeSection)) {
+    return plannerConfig.archiveSelectionPrompt;
+  }
+
+  return plannerConfig.selectionPrompt;
+}
+
+function getPlannerListEmptyMessage() {
+  const plannerConfig = getPlannerConfig();
+
+  if (supportsPlannerArchives(activeSection) && isArchiveView(activeSection)) {
+    return plannerConfig.archiveEmptyMessage;
+  }
+
+  return plannerConfig.emptyPlannerMessage;
 }
 
 function renderPlannerDatePicker() {
@@ -994,8 +1582,30 @@ function closePlannerDatePicker() {
   plannerCreateButton.setAttribute("aria-expanded", "false");
 }
 
-function formatEssEntryDate(date) {
+function formatPlannerEntryDate(date) {
   return `${ENTRY_MONTH_FORMATTER.format(date)} ${date.getDate()}, ${String(date.getFullYear()).slice(-2)}'`;
+}
+
+function formatWeekendEntryDate(weekendStartDate) {
+  const weekendEndDate = createCalendarDate(
+    weekendStartDate.getFullYear(),
+    weekendStartDate.getMonth(),
+    weekendStartDate.getDate() + 1
+  );
+  const startMonth = ENTRY_MONTH_FORMATTER.format(weekendStartDate);
+  const endMonth = ENTRY_MONTH_FORMATTER.format(weekendEndDate);
+  const startYear = String(weekendStartDate.getFullYear()).slice(-2);
+  const endYear = String(weekendEndDate.getFullYear()).slice(-2);
+
+  if (weekendStartDate.getFullYear() !== weekendEndDate.getFullYear()) {
+    return `${startMonth} ${weekendStartDate.getDate()}, ${startYear}'-${endMonth} ${weekendEndDate.getDate()}, ${endYear}'`;
+  }
+
+  if (weekendStartDate.getMonth() === weekendEndDate.getMonth()) {
+    return `${startMonth} ${weekendStartDate.getDate()}-${weekendEndDate.getDate()}`;
+  }
+
+  return `${startMonth} ${weekendStartDate.getDate()}-${endMonth} ${weekendEndDate.getDate()}`;
 }
 
 function getCalendarGridStart(monthDate) {
@@ -1035,6 +1645,20 @@ function createCalendarDate(year, month, day) {
   return new Date(year, month, day);
 }
 
+function getWeekendStartDate(date) {
+  const dayOfWeek = date.getDay();
+
+  if (dayOfWeek === 6) {
+    return getStartOfDay(date);
+  }
+
+  if (dayOfWeek === 0) {
+    return createCalendarDate(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+  }
+
+  return null;
+}
+
 function getStartOfMonth(date) {
   return createCalendarDate(date.getFullYear(), date.getMonth(), 1);
 }
@@ -1051,17 +1675,86 @@ function areSameCalendarDay(firstDate, secondDate) {
   );
 }
 
-function getEssSelectionMessage() {
-  const planner = getEssPlannerData();
-  return planner.entries.length > 0 ? "Select an ESS day first" : "Create an ESS entry first";
+function getPlannerSelectionMessage() {
+  const plannerConfig = getPlannerConfig();
+  const visibleEntries = getVisiblePlannerEntries();
+
+  if (supportsPlannerArchives(activeSection) && isArchiveView(activeSection)) {
+    return visibleEntries.length > 0
+      ? plannerConfig.archiveNoSelectionMessage
+      : plannerConfig.archiveNoEntryMessage;
+  }
+
+  return visibleEntries.length > 0 ? plannerConfig.noSelectionMessage : plannerConfig.noEntryMessage;
 }
 
 function createTaskId() {
   return Date.now() + Math.floor(Math.random() * 1000);
 }
 
-function createEntryId() {
-  return `ess-entry-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+function createEntryId(prefix) {
+  return `${prefix || "planner"}-entry-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
+function isPlannerSection(sectionKey) {
+  return PLANNER_SECTION_KEY_SET.has(sectionKey);
+}
+
+function getPlannerConfig(sectionKey) {
+  return SECTION_CONFIG[sectionKey || activeSection];
+}
+
+function supportsPlannerArchives(sectionKey) {
+  return isPlannerSection(sectionKey);
+}
+
+function createArchiveViewState() {
+  return {
+    [GENERAL_SECTION_KEY]: false,
+    [WEEKEND_SECTION_KEY]: false,
+    [ESS_SECTION_KEY]: false
+  };
+}
+
+function isArchiveView(sectionKey) {
+  return Boolean(archiveViewBySection[sectionKey]);
+}
+
+function setArchiveView(sectionKey, nextValue) {
+  archiveViewBySection = {
+    ...archiveViewBySection,
+    [sectionKey]: Boolean(nextValue)
+  };
+}
+
+function getArchiveIconMarkup() {
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M4 6.75h16M7 6.75V5.5a1.5 1.5 0 0 1 1.5-1.5h7A1.5 1.5 0 0 1 17 5.5v1.25m-11 0v11.75A1.5 1.5 0 0 0 7.5 20h9A1.5 1.5 0 0 0 18 18.5V6.75m-7 4h2"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.7"
+      />
+    </svg>
+  `;
+}
+
+function getCheckIconMarkup() {
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M6.5 12.5 10 16l7.5-8"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+      />
+    </svg>
+  `;
 }
 
 function resetDragState() {
