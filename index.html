@@ -1,92 +1,75 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Shahdad Neda</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./fonts.css?v=1" />
-    <link rel="stylesheet" href="./style.css?v=2" />
-  </head>
-  <body class="layout">
-    <a class="skip" href="#home">Skip to content</a>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shahdad Neda</title>
+  <meta name="description" content="Shahdad Neda — student in BC. Projects and web games.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23151412'/%3E%3Ctext x='8' y='12' font-size='11' text-anchor='middle' fill='%23e0a458' font-family='sans-serif' font-weight='700'%3ES%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./fonts.css?v=3">
+  <link rel="stylesheet" href="./style.css?v=4">
+</head>
+<body>
+  <main>
+    <header class="intro">
+      <h1>Shahdad Neda</h1>
+      <p>I'm a high school student in British Columbia. Most of what I make ends up here — small web games, tools, and the odd robotics or mechatronics project.</p>
+      <p class="quiet">Away from the keyboard I play tennis, volleyball, and basketball, plus piano and trumpet.</p>
+      <p class="contact">
+        <a href="https://github.com/shahdadneda" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://x.com/shahdadneda" target="_blank" rel="noreferrer">X</a>
+      </p>
+    </header>
 
-    <aside class="sidebar">
-      <div class="brand">Shahdad Neda</div>
-      <nav class="side-nav">
-        <a href="#home">Home</a>
-        <a href="#projects">Projects</a>
-        <a href="#games">Games</a>
-      </nav>
-    </aside>
-
-    <main class="content">
-      <section id="home" class="hero">
-        <div class="hero-wrap">
-          <h1 class="title">Shahdad<br/>Neda</h1>
-          <p class="tagline">Student and programmer in-progress</p>
-
-          <div class="socials" aria-label="Social links">
-            <a href="https://github.com/shahdadneda" target="_blank" rel="noreferrer" aria-label="GitHub" class="social-btn">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2.02c-3.34.73-4.04-1.6-4.04-1.6-.55-1.38-1.35-1.75-1.35-1.75-1.11-.76.09-.75.09-.75 1.22.09 1.86 1.25 1.86 1.25 1.09 1.86 2.86 1.32 3.56 1.01.11-.8.43-1.33.78-1.63-2.66-.3-5.47-1.33-5.47-5.9 0-1.3.47-2.37 1.24-3.21-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.22.96-.27 1.98-.4 3-.41 1.02 0 2.04.14 3 .41 2.29-1.54 3.3-1.22 3.3-1.22.66 1.65.25 2.87.12 3.17.77.84 1.23 1.91 1.23 3.21 0 4.58-2.8 5.6-5.48 5.9.44.38.84 1.13.84 2.29v3.39c0 .32.21.69.83.57A12 12 0 0 0 12 .5Z"/></svg>
-            </a>
-            <a href="https://x.com/shahdadneda" target="_blank" rel="noreferrer" aria-label="Twitter / X" class="social-btn">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2H21.5l-7.58 8.66L23.5 22h-7.03l-5.5-6.64L4.64 22H1.38l8.1-9.26L.5 2h7.18l4.97 5.96L18.24 2Zm-1.23 18h1.98L7.06 4h-2L17.01 20Z"/></svg>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      
-      <section id="about" class="section">
-        <div class="panel">
-          <h2>Hey</h2>
-          <p>I'm a high school student in British Columbia, Canada.</p>
-          <p>I'm interested in programming and tech, and I love making online projects, web games, and mechatronics/robotics projects.</p>
-          <p>I also spend my time playing sports like tennis, volleyball, and basketball, or playing music on my piano or trumpet.</p>
-        </div>
-      </section>
-
-      <section id="projects" class="section">
-        <h2>Projects</h2>
-        <div class="cards">
-          <a class="card" href="/Todo/">
-            <div class="card-title">To-Do</div>
-            <div class="card-sub">Full-Stack JS ToDo planner</div>
+    <section>
+      <h2>Projects</h2>
+      <ul class="rows">
+        <li>
+          <a href="/Todo/">
+            <span class="row-title">To-Do</span>
+            <span class="row-meta">full-stack planner</span>
           </a>
-        </div>
-      </section>
+        </li>
+      </ul>
+    </section>
 
-      <section id="games" class="section">
-        <h2>Games</h2>
-        <div class="cards">
-          <a class="card" href="./snake/index.html">
-            <div class="card-title">Snake</div>
-            <div class="card-sub">Vanilla JS</div>
+    <section>
+      <h2>Games</h2>
+      <ul class="rows">
+        <li>
+          <a href="./snake/">
+            <span class="row-title">Snake</span>
+            <span class="row-meta">canvas · js</span>
           </a>
-          <a class="card" href="./tetris/tetris.html">
-            <div class="card-title">Tetris</div>
-            <div class="card-sub">Vanilla JS</div>
+        </li>
+        <li>
+          <a href="./tetris/tetris.html">
+            <span class="row-title">Tetris</span>
+            <span class="row-meta">canvas · js</span>
           </a>
-          <a class="card" href="./RocketRumble/sitebuild/index.html">
-            <div class="card-title">Rocket Rumble</div>
-            <div class="card-sub">Unity</div>
+        </li>
+        <li>
+          <a href="/RocketRumble/sitebuild/index.html">
+            <span class="row-title">Rocket Rumble</span>
+            <span class="row-meta">unity · desktop</span>
           </a>
-          <a class="card" href="./ObstacleCourse/buildGame/index.html">
-            <div class="card-title">Obstacle Course</div>
-            <div class="card-sub">Unity</div>
+        </li>
+        <li>
+          <a href="/ObstacleCourse/buildGame/index.html">
+            <span class="row-title">Obstacle Course</span>
+            <span class="row-meta">unity · desktop</span>
           </a>
-        </div>
-      </section>
+        </li>
+      </ul>
+    </section>
 
-    </main>
+    <footer>
+      <span id="year">2026</span> · shahdad.ca
+    </footer>
+  </main>
 
-    <script>
-      const y = new Date().getFullYear();
-      const yearEl = document.getElementById('year');
-      if (yearEl) yearEl.textContent = y;
-    </script>
-  </body>
-</html> 
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

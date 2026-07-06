@@ -118,19 +118,26 @@ Archive notes:
 The visual language of the site is consistent and should be preserved unless
 the user asks for a redesign.
 
-Key style characteristics:
+Key style characteristics (redesigned July 2026):
 
-- Dark navy / blue background
-- Light text with muted blue-gray secondary text
-- Clean, minimal layout
+- Warm near-black background (`#151412`) with warm off-white text (`#ece7de`)
+- Single amber accent (`#e0a458`); muted warm gray for secondary text
+- Quiet, typographic, single-column layout — list rows with hairline borders
+  instead of card grids
+- Monospace (`ui-monospace` stack) for metadata, hints, and scores
 - Plain CSS, no component library
-- “Uber Move” font setup through `fonts.css`, with fallbacks to Inter/system UI
-- Rounded corners, subtle borders, and soft hover/focus states
+- “Uber Move” font through `fonts.css` (only Medium and Bold .otf files exist)
+- Game pages share the same tokens: top bar with back link + inline scores,
+  responsive hi-DPI canvas, DOM overlays for pause/game-over, one-line control
+  hints (keyboard vs touch hint swapped via `@media (hover: none)`)
+- Games have touch controls: Snake (swipe to steer, tap to pause), Tetris
+  (drag to move/soft-drop, tap to rotate, flick down to hard-drop)
 
 When adding new pages or features, future agents should try to match:
 
-- The dark blue color palette
-- Minimal but polished styling
+- The warm dark palette above
+- Minimal but polished styling — avoid generic "AI site" tropes (gradient hero
+  text, glassmorphism cards, heavy shadows); the owner explicitly dislikes them
 - Vanilla HTML/CSS/JS implementation
 - Responsive behavior without introducing frameworks
 

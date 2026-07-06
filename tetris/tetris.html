@@ -1,54 +1,43 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Tetris by Shahdad</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../fonts.css" />
-    <link rel="stylesheet" href="./style.css" />
-    <meta charset="utf-8" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tetris · Shahdad Neda</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23151412'/%3E%3Ctext x='8' y='12' font-size='11' text-anchor='middle' fill='%23e0a458' font-family='sans-serif' font-weight='700'%3ES%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../fonts.css?v=3">
+  <link rel="stylesheet" href="./style.css?v=4">
 </head>
 <body>
-<div class="container">
-    <a href="../index.html" class="back-link back-fixed">← Back to Home</a>
-    <div class="header">
-        <div class="title">Tetris!<span ></span></div>
+  <div class="wrap">
+    <header class="bar">
+      <a class="back" href="../">&larr; shahdad.ca</a>
+      <h1>Tetris</h1>
+      <button class="ghost-btn" id="btn-pause" type="button">pause</button>
+    </header>
+
+    <div class="stats">
+      <span>score <b id="score">0</b></span>
+      <span>best <b id="high">0</b></span>
+      <span>lines <b id="lines">0</b></span>
+      <span class="next-wrap">next <canvas id="next" width="96" height="48"></canvas></span>
     </div>
 
-    <div class="layout">
-        <section class="card game-card">
-            <canvas id="tetris" width="360" height="720"></canvas>
-        </section>
-
-        <aside class="card sidebar">
-            <div class="score-card">
-                <div class="score-header"> Score</div>
-                <div class="score-value" id="score">0</div>
-            </div>
-
-            <h2>Controls</h2>
-            <div class="controls">
-                <ul class="controls-list">
-                    <li><span class="key">A</span> / <span class="key">D</span> Move</li>
-                    <li><span class="key">S</span> Soft drop</li>
-                    <li><span class="key">Space</span> Hard drop</li>
-                    <li><span class="key">W</span> Rotate</li>
-                    <li><span class="key">Esc</span> Pause</li>
-
-                </ul>
-                <div class="cta">Clear lines to score. Speed increases every line.</div>
-                <div class="actions">
-                    <button id="btn-restart" class="btn btn-primary">Restart</button>
-                </div>
-            </div>
-        </aside>
+    <div class="stage" id="stage">
+      <canvas id="tetris"></canvas>
+      <div class="overlay" id="overlay" hidden>
+        <p class="overlay-title" id="overlay-title"></p>
+        <p class="overlay-sub" id="overlay-sub"></p>
+      </div>
     </div>
-</div>
 
-<script src="./game.js"></script>
+    <div class="under">
+      <p class="hint hint-keys">&larr;&rarr; move &middot; &uarr; rotate &middot; space drops</p>
+      <p class="hint hint-touch">drag to move &middot; tap rotates &middot; flick down drops</p>
+      <button class="ghost-btn" id="btn-restart" type="button">restart</button>
+    </div>
+  </div>
+
+  <script src="./game.js?v=4"></script>
 </body>
 </html>
-
-
