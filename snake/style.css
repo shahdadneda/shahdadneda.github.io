@@ -122,3 +122,63 @@ body {
   cursor: pointer;
 }
 .ghost-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Global leaderboard (in the game-over overlay) */
+.lb-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  touch-action: auto;
+}
+.lb-entry[hidden] { display: none; }
+.lb-prompt { margin: 0; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+.lb-input {
+  width: 5.5ch;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--text);
+  background: var(--board);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 2px;
+  outline: none;
+  caret-color: var(--accent);
+}
+.lb-input:focus { border-color: var(--accent); }
+.lb-input::placeholder { color: var(--muted); opacity: 0.5; }
+.lb-actions { display: flex; gap: 8px; }
+.lb-actions .ghost-btn { margin-left: 0; }
+.lb-title {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.lb-title[hidden] { display: none; }
+.lb-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  width: min(200px, 72%);
+  display: grid;
+  gap: 3px;
+}
+.lb-list[hidden] { display: none; }
+.lb-list li { display: flex; gap: 12px; color: var(--text); }
+.lb-rank { color: var(--muted); min-width: 2ch; text-align: right; }
+.lb-name { letter-spacing: 0.14em; }
+.lb-score { margin-left: auto; color: var(--muted); }
+.lb-list li.mine .lb-rank,
+.lb-list li.mine .lb-name,
+.lb-list li.mine .lb-score { color: var(--accent); }

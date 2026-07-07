@@ -18,6 +18,10 @@ const COLOR = {
   food: '#d95f54',
 };
 
+const lb = window.Leaderboard
+  ? Leaderboard.create({ game: 'snake', overlay, overlaySub })
+  : { gameOver() {}, reset() {}, isCapturing() { return false; } };
+
 let cell = 24;
 let snake, dir, nextDir, food, score, speedMs;
 let state = 'ready'; // ready | run | pause | over
@@ -42,6 +46,7 @@ function init() {
   acc = 0;
   state = 'ready';
   placeFood();
+  lb.reset();
   hideOverlay();
   updateScores();
 }
@@ -102,6 +107,7 @@ function endGame() {
   state = 'over';
   updateScores();
   showOverlay('Game over', 'score ' + score + ' · press or tap to go again');
+  lb.gameOver(score);
 }
 
 function setPause(on) {
@@ -169,6 +175,7 @@ function loop(time = 0) {
 
 // Keyboard
 document.addEventListener('keydown', (e) => {
+  if (lb.isCapturing()) return;
   const k = e.key;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) e.preventDefault();
 
@@ -193,6 +200,11 @@ const SWIPE = 22;
 let touch = null;
 
 stage.addEventListener('touchstart', (e) => {
+  if (lb.isCapturing()) { // let taps reach the initials form; ignore the rest
+    if (!overlay.contains(e.target)) e.preventDefault();
+    touch = null;
+    return;
+  }
   e.preventDefault();
   const p = e.touches[0];
   touch = { x: p.clientX, y: p.clientY, moved: false };
@@ -212,6 +224,7 @@ stage.addEventListener('touchmove', (e) => {
 
 stage.addEventListener('touchend', (e) => {
   if (!touch) return;
+  if (lb.isCapturing()) { touch = null; return; }
   e.preventDefault();
   if (!touch.moved) {
     if (state === 'over') init();

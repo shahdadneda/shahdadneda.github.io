@@ -73,6 +73,10 @@ function createMatrix(w, h) {
   return m;
 }
 
+const lb = window.Leaderboard
+  ? Leaderboard.create({ game: 'tetris', overlay, overlaySub })
+  : { gameOver() {}, reset() {}, isCapturing() { return false; } };
+
 let B = 30; // block size in canvas px
 const arena = createMatrix(COLS, ROWS);
 const player = { pos: { x: 0, y: 0 }, matrix: null };
@@ -223,6 +227,7 @@ function gameOver() {
   state = 'over';
   localStorage.setItem(HIGH_KEY, String(high));
   showOverlay('Game over', 'score ' + score + ' · press or tap to go again');
+  lb.gameOver(score);
 }
 
 function setPause(on) {
@@ -252,6 +257,7 @@ function restart() {
   nextType = null;
   state = 'run';
   pauseBtn.textContent = 'pause';
+  lb.reset();
   hideOverlay();
   updateStats();
   spawn();
@@ -365,6 +371,7 @@ function update(time = 0) {
 
 // Keyboard
 document.addEventListener('keydown', (e) => {
+  if (lb.isCapturing()) return;
   const k = e.key;
   const lo = k.toLowerCase();
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) e.preventDefault();
@@ -391,6 +398,11 @@ document.addEventListener('keydown', (e) => {
 let touch = null;
 
 stage.addEventListener('touchstart', (e) => {
+  if (lb.isCapturing()) { // let taps reach the initials form; ignore the rest
+    if (!overlay.contains(e.target)) e.preventDefault();
+    touch = null;
+    return;
+  }
   e.preventDefault();
   const p = e.touches[0];
   touch = {
@@ -425,6 +437,7 @@ stage.addEventListener('touchmove', (e) => {
 
 stage.addEventListener('touchend', (e) => {
   if (!touch) return;
+  if (lb.isCapturing()) { touch = null; return; }
   e.preventDefault();
   const p = e.changedTouches[0];
   const dt = performance.now() - touch.t0;
