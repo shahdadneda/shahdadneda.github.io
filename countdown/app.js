@@ -327,4 +327,13 @@
   renderTargetLine();
   tick();
   setInterval(tick, 1000);
+
+  // On phones the 1s timer is suspended while the tab is backgrounded or the
+  // screen is locked, and browsers can restore the page from a frozen snapshot
+  // (bfcache) showing a stale day count. Recompute whenever we come back.
+  window.addEventListener('pageshow', tick);
+  window.addEventListener('focus', tick);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') tick();
+  });
 })();
