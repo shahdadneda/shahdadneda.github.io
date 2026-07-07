@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Countdown · Shahdad Neda</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23151412'/%3E%3Ctext x='8' y='12' font-size='11' text-anchor='middle' fill='%23e0a458' font-family='sans-serif' font-weight='700'%3ES%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../fonts.css?v=3">
+  <link rel="stylesheet" href="./style.css?v=1">
+</head>
+<body>
+  <div class="wrap">
+    <header class="bar">
+      <a class="back" href="../">&larr; shahdad.ca</a>
+    </header>
+
+    <p class="target-line" id="target-line"></p>
+
+    <div class="tiles" id="tiles">
+      <div class="tile">
+        <span class="tile-num" id="t-days">0</span>
+        <span class="tile-label" id="t-days-label">days</span>
+      </div>
+      <div class="tile">
+        <span class="tile-num" id="t-hours">00</span>
+        <span class="tile-label">hours</span>
+      </div>
+      <div class="tile">
+        <span class="tile-num" id="t-mins">00</span>
+        <span class="tile-label">minutes</span>
+      </div>
+      <div class="tile">
+        <span class="tile-num" id="t-secs">00</span>
+        <span class="tile-label">seconds</span>
+      </div>
+    </div>
+
+    <p class="totals" id="totals"></p>
+    <p class="done" id="done" hidden>it&rsquo;s here.</p>
+
+    <section class="settings">
+      <div class="picker" id="picker">
+        <button class="date-btn" id="date-btn" type="button" aria-haspopup="dialog" aria-expanded="false">
+          <span id="date-btn-text"></span>
+          <span class="chev" aria-hidden="true">&#9662;</span>
+        </button>
+
+        <div class="pop" id="pop" hidden>
+          <div class="cal-head">
+            <span class="cal-title" id="cal-title"></span>
+            <div class="cal-nav">
+              <button type="button" id="cal-prev" aria-label="previous month">&#8249;</button>
+              <button type="button" id="cal-next" aria-label="next month">&#8250;</button>
+            </div>
+          </div>
+          <div class="cal-dow">
+            <span>sun</span><span>mon</span><span>tue</span><span>wed</span><span>thu</span><span>fri</span><span>sat</span>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="time-row">
+            <span>time</span>
+            <span class="time-controls" id="time-controls">
+              <button type="button" class="time-btn" id="time-btn" hidden></button>
+              <div class="time-menu" id="time-menu" hidden></div>
+              <button class="switch" id="time-toggle" type="button" role="switch" aria-checked="false" aria-label="set a specific time"></button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="school-check">
+        <span>count school days instead of calendar days</span>
+      </label>
+    </section>
+  </div>
+
+  <script src="./app.js?v=2"></script>
+</body>
+</html>
