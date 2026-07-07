@@ -19,7 +19,7 @@ const COLOR = {
 };
 
 const lb = window.Leaderboard
-  ? Leaderboard.create({ game: 'snake', overlay, overlaySub })
+  ? Leaderboard.create({ game: 'snake', panel: document.getElementById('leaderboard'), overlaySub })
   : { gameOver() {}, reset() {}, isCapturing() { return false; } };
 
 let cell = 24;
@@ -200,11 +200,7 @@ const SWIPE = 22;
 let touch = null;
 
 stage.addEventListener('touchstart', (e) => {
-  if (lb.isCapturing()) { // let taps reach the initials form; ignore the rest
-    if (!overlay.contains(e.target)) e.preventDefault();
-    touch = null;
-    return;
-  }
+  if (lb.isCapturing()) { e.preventDefault(); touch = null; return; }
   e.preventDefault();
   const p = e.touches[0];
   touch = { x: p.clientX, y: p.clientY, moved: false };

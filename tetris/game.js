@@ -74,7 +74,7 @@ function createMatrix(w, h) {
 }
 
 const lb = window.Leaderboard
-  ? Leaderboard.create({ game: 'tetris', overlay, overlaySub })
+  ? Leaderboard.create({ game: 'tetris', panel: document.getElementById('leaderboard'), overlaySub })
   : { gameOver() {}, reset() {}, isCapturing() { return false; } };
 
 let B = 30; // block size in canvas px
@@ -398,11 +398,7 @@ document.addEventListener('keydown', (e) => {
 let touch = null;
 
 stage.addEventListener('touchstart', (e) => {
-  if (lb.isCapturing()) { // let taps reach the initials form; ignore the rest
-    if (!overlay.contains(e.target)) e.preventDefault();
-    touch = null;
-    return;
-  }
+  if (lb.isCapturing()) { e.preventDefault(); touch = null; return; }
   e.preventDefault();
   const p = e.touches[0];
   touch = {

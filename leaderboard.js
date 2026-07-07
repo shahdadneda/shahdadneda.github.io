@@ -1,17 +1,19 @@
 // Shared global high-score client for the games.
-// Talks to the scores API on server.shahdad.ca; if it is unreachable the
-// games behave exactly as before (local best only, no errors shown).
+// Renders a persistent leaderboard panel beside the board (below it on
+// mobile) and handles arcade initials entry. If the scores API on
+// server.shahdad.ca is unreachable the panel stays hidden and the games
+// behave exactly as before.
 window.Leaderboard = (function () {
   'use strict';
 
   const API_BASE = 'https://server.shahdad.ca/api/scores';
   const INITIALS_KEY = 'arcade-initials';
-  const INITIALS_PATTERN = /^[A-Z]{1,3}$/;
+  const INITIALS_PATTERN = /^[A-Z]{1,4}$/;
   const FETCH_TIMEOUT_MS = 4000;
 
   function create(config) {
     const game = config.game;
-    const overlay = config.overlay;
+    const panel = config.panel;
     const overlaySub = config.overlaySub;
 
     let top = null; // cached top-10, or null while unavailable
@@ -20,7 +22,11 @@ window.Leaderboard = (function () {
     let pendingScore = 0;
     let defaultSubText = '';
 
-    // --- entry form + list, appended to the game-over overlay ---
+    // --- panel scaffolding ---
+
+    const heading = document.createElement('p');
+    heading.className = 'lb-heading';
+    heading.textContent = 'global leaderboard';
 
     const entry = document.createElement('form');
     entry.className = 'lb-entry';
@@ -28,17 +34,23 @@ window.Leaderboard = (function () {
 
     const prompt = document.createElement('p');
     prompt.className = 'lb-prompt';
-    prompt.textContent = 'global top 10 · enter initials';
+    prompt.textContent = 'top 10 finish — your initials';
 
     const input = document.createElement('input');
     input.className = 'lb-input';
-    input.maxLength = 3;
+    input.maxLength = 4;
     input.autocomplete = 'off';
     input.spellcheck = false;
-    input.placeholder = 'AAA';
+    input.placeholder = 'AAAA';
     input.setAttribute('autocapitalize', 'characters');
     input.setAttribute('inputmode', 'text');
     input.setAttribute('aria-label', 'initials');
+    // Keep password managers (1Password, LastPass, Bitwarden, Dashlane) away
+    // from this arcade-initials field.
+    input.setAttribute('data-1p-ignore', '');
+    input.setAttribute('data-lpignore', 'true');
+    input.setAttribute('data-bwignore', '');
+    input.setAttribute('data-form-type', 'other');
 
     const actions = document.createElement('div');
     actions.className = 'lb-actions';
@@ -56,19 +68,19 @@ window.Leaderboard = (function () {
     actions.append(save, skip);
     entry.append(prompt, input, actions);
 
-    const listTitle = document.createElement('p');
-    listTitle.className = 'lb-title';
-    listTitle.textContent = 'global leaderboard';
-    listTitle.hidden = true;
-
     const list = document.createElement('ol');
     list.className = 'lb-list';
-    list.hidden = true;
 
-    overlay.append(entry, listTitle, list);
+    const empty = document.createElement('p');
+    empty.className = 'lb-empty';
+    empty.textContent = 'no scores yet';
+    empty.hidden = true;
+
+    panel.append(heading, entry, list, empty);
+    panel.hidden = true; // revealed once we have data
 
     input.addEventListener('input', function () {
-      input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+      input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
     });
 
     input.addEventListener('keydown', function (e) {
@@ -100,8 +112,15 @@ window.Leaderboard = (function () {
           if (!r.ok) throw new Error('bad status');
           return r.json();
         })
-        .then(function (data) { top = data.scores; })
-        .catch(function () { top = null; });
+        .then(function (data) {
+          top = data.scores;
+          panel.hidden = false;
+          renderList();
+        })
+        .catch(function () {
+          top = null;
+          panel.hidden = true;
+        });
     }
 
     function submitScore(initials) {
@@ -122,7 +141,7 @@ window.Leaderboard = (function () {
           top = data.scores;
           renderList(data.id);
           const rankNote = data.rank && data.rank <= 10 ? '#' + data.rank + ' all-time · ' : '';
-          overlaySub.textContent = rankNote + defaultSubText;
+          overlaySub.textContent = rankNote + 'press or tap to go again';
         })
         .catch(function () {
           overlaySub.textContent = defaultSubText;
@@ -133,7 +152,8 @@ window.Leaderboard = (function () {
 
     function renderList(highlightId) {
       list.textContent = '';
-      (top || []).forEach(function (row, i) {
+      const rows = top || [];
+      rows.forEach(function (row, i) {
         const li = document.createElement('li');
         if (row.id === highlightId) li.className = 'mine';
         const rank = document.createElement('span');
@@ -148,15 +168,15 @@ window.Leaderboard = (function () {
         li.append(rank, name, pts);
         list.appendChild(li);
       });
-      list.hidden = !top || top.length === 0;
-      listTitle.hidden = list.hidden;
+      const isEmpty = rows.length === 0;
+      list.hidden = isEmpty;
+      empty.hidden = !isEmpty;
     }
 
     function dismiss() {
       entry.hidden = true;
       capturing = false;
       overlaySub.textContent = defaultSubText;
-      renderList();
     }
 
     function qualifies(score) {
@@ -174,13 +194,16 @@ window.Leaderboard = (function () {
       if (qualifies(score)) {
         submitted = true;
         capturing = true;
-        list.hidden = true;
-        listTitle.hidden = true;
         input.value = localStorage.getItem(INITIALS_KEY) || '';
         entry.hidden = false;
-        if (window.matchMedia('(hover: hover)').matches) input.focus();
-      } else if (top && top.length) {
-        renderList();
+        overlaySub.textContent = 'top 10 finish — add your initials';
+        // Bring the entry into view (matters on mobile, where the panel
+        // sits below the board) and focus on desktop.
+        if (window.matchMedia('(hover: hover)').matches) {
+          input.focus();
+        } else {
+          entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
 
@@ -189,8 +212,7 @@ window.Leaderboard = (function () {
       capturing = false;
       submitted = false;
       entry.hidden = true;
-      list.hidden = true;
-      listTitle.hidden = true;
+      renderList();
     }
 
     fetchTop();
