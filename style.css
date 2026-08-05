@@ -41,15 +41,45 @@ h1 {
   color: var(--soft);
 }
 
-.contact { margin-top: 24px; }
-.contact a {
-  color: var(--text);
-  text-decoration: none;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 2px;
+.intro .contact {
+  display: flex;
+  gap: 10px;
+  margin: 26px 0 14px;
 }
-.contact a:hover { color: var(--accent); border-color: var(--accent); }
-.contact a + a { margin-left: 18px; }
+
+.contact a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(236, 231, 222, 0.035);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.contact img {
+  display: block;
+  opacity: 0.82;
+  transition: opacity 0.15s ease;
+}
+
+.contact .github-icon { width: 24px; height: 24px; }
+.contact .x-icon { width: 20px; height: 20px; }
+
+.contact a:hover,
+.contact a:focus-visible {
+  background: rgba(224, 164, 88, 0.08);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.contact a:hover img,
+.contact a:focus-visible img { opacity: 1; }
+
+.contact a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* Sections */
 section { margin-top: 56px; }
