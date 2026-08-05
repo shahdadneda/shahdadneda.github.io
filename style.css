@@ -41,8 +41,6 @@ h1 {
   color: var(--soft);
 }
 
-.intro .quiet { color: var(--muted); }
-
 .contact { margin-top: 24px; }
 .contact a {
   color: var(--text);
